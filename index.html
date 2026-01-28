@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Honk&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&family=Honk&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script>
@@ -24,8 +24,8 @@
                         "muted-red": "#991b1b",
                     },
                     fontFamily: {
-                        sans: ["Inter", "sans-serif"],
-                        mono: ["JetBrains Mono", "monospace"],
+                        sans: ["Geist", "sans-serif"],
+                        mono: ["Geist Mono", "monospace"],
                     },
                 },
             },
@@ -38,7 +38,7 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Geist', sans-serif;
         }
         .grid-pattern {
             background-image:
@@ -753,7 +753,7 @@
                     this.cameras.main.centerX,
                     this.cameras.main.centerY,
                     'INITIALIZING...',
-                    { fontSize: '14px', color: '#10b981', fontFamily: 'JetBrains Mono' }
+                    { fontSize: '14px', color: '#10b981', fontFamily: 'Geist Mono' }
                 ).setOrigin(0.5);
 
                 // Load CertMan logo SVG as data URL to avoid CORS issues
@@ -984,94 +984,135 @@
                 const centerX = this.cameras.main.centerX;
                 const centerY = this.cameras.main.centerY;
 
-                // Initialize sound on ANY first interaction (browser autoplay policy)
+                // Initialize sound on ANY first interaction
                 const initSound = () => {
                     if (soundManager.initialized) return;
                     soundManager.init();
                     soundManager.playSpaceHero();
-                    // Remove all listeners once triggered
                     ['keydown', 'click', 'touchstart', 'mousedown', 'mousemove'].forEach(evt => {
                         document.removeEventListener(evt, initSound);
                     });
                 };
-                // Listen for any possible user interaction
                 ['keydown', 'click', 'touchstart', 'mousedown', 'mousemove'].forEach(evt => {
                     document.addEventListener(evt, initSound, { once: true });
                 });
 
-                // Main title
-                const titleY = centerY - 100;
-                const mainTitle = this.add.text(centerX, titleY, 'COMPLIANCE-MAN™', {
-                    fontSize: '72px',
+                // Main title with entrance animation
+                const mainTitle = this.add.text(centerX, centerY - 120, 'COMPLIANCE-MAN™', {
+                    fontSize: '64px',
                     fontFamily: 'Honk'
-                }).setOrigin(0.5);
+                }).setOrigin(0.5).setScale(0);
 
-                // Subtle pulsing animation
                 this.tweens.add({
                     targets: mainTitle,
-                    scale: { from: 1, to: 1.05 },
-                    duration: 1500,
+                    scale: 1,
+                    duration: 500,
+                    ease: 'Back.easeOut'
+                });
+
+                // Subtle breathing animation
+                this.tweens.add({
+                    targets: mainTitle,
+                    scale: { from: 1, to: 1.02 },
+                    duration: 2000,
                     yoyo: true,
                     repeat: -1,
-                    ease: 'Sine.easeInOut'
+                    ease: 'Sine.easeInOut',
+                    delay: 500
                 });
 
-                // Tagline with matching glow
-                const tagline = this.add.text(centerX, centerY - 40, 'COMPLY OR PAY!', {
-                    fontSize: '20px',
-                    fontFamily: 'JetBrains Mono',
+                // Tagline
+                const tagline = this.add.text(centerX, centerY - 55, 'COMPLY OR PAY!', {
+                    fontSize: '24px',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#10b981',
-                    letterSpacing: '6px'
-                }).setOrigin(0.5);
-                tagline.setShadow(0, 0, '#10b981', 8, true, true);
+                    letterSpacing: '4px'
+                }).setOrigin(0.5).setAlpha(0);
 
-                // Divider line
-                const line = this.add.rectangle(centerX, centerY - 20, 60, 2, 0x10b981);
-
-                // Instructions
-                this.add.text(centerX, centerY + 20, 'Collect compliance elements', {
-                    fontSize: '14px',
-                    fontFamily: 'Inter',
-                    color: '#666666'
-                }).setOrigin(0.5);
-
-                this.add.text(centerX, centerY + 45, 'Avoid regulatory flags', {
-                    fontSize: '14px',
-                    fontFamily: 'Inter',
-                    color: '#666666'
-                }).setOrigin(0.5);
-
-                // Controls hint
-                this.add.text(centerX, centerY + 90, 'WASD or ARROWS to move', {
-                    fontSize: '11px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#444444'
-                }).setOrigin(0.5);
-
-                // Start button
-                const startButton = this.add.text(centerX, centerY + 140, 'PRESS SPACE TO START', {
-                    fontSize: '14px',
-                    fontFamily: 'JetBrains Mono',
-                    fontStyle: 'bold',
-                    color: '#10b981'
-                }).setOrigin(0.5);
-
-                // Blink effect
                 this.tweens.add({
-                    targets: startButton,
-                    alpha: 0.3,
-                    duration: 600,
-                    yoyo: true,
-                    repeat: -1
+                    targets: tagline,
+                    alpha: 1,
+                    y: centerY - 60,
+                    duration: 400,
+                    delay: 300
                 });
 
-                // Start game on space
-                this.input.keyboard.once('keydown-SPACE', () => {
+                // Simple divider
+                const divider = this.add.rectangle(centerX, centerY - 30, 100, 2, 0x10b981).setAlpha(0);
+                this.tweens.add({
+                    targets: divider,
+                    alpha: 0.6,
+                    duration: 400,
+                    delay: 500
+                });
+
+                // Instructions - clean and simple
+                const inst1 = this.add.text(centerX, centerY + 15, '◆ Collect compliance elements and updates', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#10b981'
+                }).setOrigin(0.5).setAlpha(0);
+
+                const inst2 = this.add.text(centerX, centerY + 50, '☠ Avoid regulatory auditors', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#ef4444'
+                }).setOrigin(0.5).setAlpha(0);
+
+                this.tweens.add({
+                    targets: [inst1, inst2],
+                    alpha: 1,
+                    duration: 400,
+                    delay: 600
+                });
+
+                // Controls
+                const controls = this.add.text(centerX, centerY + 95, 'WASD or ARROWS to move', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#444444'
+                }).setOrigin(0.5).setAlpha(0);
+
+                this.tweens.add({
+                    targets: controls,
+                    alpha: 1,
+                    duration: 400,
+                    delay: 700
+                });
+
+                // Start prompt with pulse
+                const startButton = this.add.text(centerX, centerY + 150, '[ CLICK OR PRESS SPACE TO START ]', {
+                    fontSize: '20px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#10b981'
+                }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
+
+                this.tweens.add({
+                    targets: startButton,
+                    alpha: 1,
+                    duration: 400,
+                    delay: 900,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: startButton,
+                            alpha: 0.4,
+                            duration: 700,
+                            yoyo: true,
+                            repeat: -1
+                        });
+                    }
+                });
+
+                // Start game on space or click
+                const startGame = () => {
                     soundManager.init();
                     soundManager.playStartGame();
                     this.scene.start('GameScene');
-                });
+                };
+                this.input.keyboard.once('keydown-SPACE', startGame);
+                startButton.once('pointerdown', startGame);
             }
         }
 
@@ -1262,7 +1303,7 @@
                 // Add "UPDATE" label above the dot - green theme
                 const label = this.add.text(updateDot.x, updateDot.y - 18, 'UPDATE', {
                     fontSize: '9px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#10b981'
                 }).setOrigin(0.5);
@@ -1429,7 +1470,7 @@
                 // Score - modern mono style
                 this.scoreText = this.add.text(16, MAZE_HEIGHT * TILE_SIZE + 8, 'SCORE: 0', {
                     fontSize: '24px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#10b981',
                     shadow: { offsetX: 2, offsetY: 2, color: '#065f46', blur: 4, fill: true }
@@ -1438,28 +1479,28 @@
                 // Products
                 this.livesText = this.add.text(MAZE_WIDTH * TILE_SIZE - 110, MAZE_HEIGHT * TILE_SIZE + 8, 'PRODUCTS: 3', {
                     fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#f5f5f5'
                 });
 
                 // Progress
                 this.progressText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 8, '0/' + this.totalDots, {
                     fontSize: '11px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#666666'
                 }).setOrigin(0.5, 0);
 
                 // Updates counter
                 this.updatesText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 22, 'UPDATES: 0', {
                     fontSize: '10px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#10b981'
                 }).setOrigin(0.5, 0);
 
                 // Update alert with countdown (hidden by default) - positioned near top of game
                 this.updateAlert = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
                     fontSize: '11px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#FFFFFF',
                     backgroundColor: '#991b1b',
@@ -1776,7 +1817,7 @@
                 const displayName = category === 'requirements' ? '+' + points : itemName;
                 const nameText = this.add.text(dotX, dotY - 20, displayName + (isUpdate ? ' +50' : ''), {
                     fontSize: category === 'requirements' ? '9px' : '11px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: textColor
                 }).setOrigin(0.5);
@@ -1840,13 +1881,13 @@
                     // Warning text
                     const warningText = this.add.text(centerX, centerY - 50, '⚠ AUDIT VIOLATION ⚠', {
                         fontSize: '14px',
-                        fontFamily: 'JetBrains Mono',
+                        fontFamily: 'Geist Mono',
                         color: '#fbbf24'
                     }).setOrigin(0.5).setAlpha(0);
 
                     const caughtText = this.add.text(centerX, centerY, 'CAUGHT BY ' + enemy.flagName.toUpperCase() + ' AUDITORS', {
                         fontSize: '28px',
-                        fontFamily: 'JetBrains Mono',
+                        fontFamily: 'Geist Mono',
                         fontStyle: 'bold',
                         color: '#ef4444'
                     }).setOrigin(0.5).setScale(0);
@@ -1854,7 +1895,7 @@
                     // Lives remaining
                     const livesText = this.add.text(centerX, centerY + 50, 'PRODUCTS REMAINING: ' + this.lives, {
                         fontSize: '12px',
-                        fontFamily: 'JetBrains Mono',
+                        fontFamily: 'Geist Mono',
                         color: '#888888'
                     }).setOrigin(0.5).setAlpha(0);
 
@@ -1941,14 +1982,14 @@
 
                 this.add.text(centerX, centerY - 80, 'COMPLIANCE ACHIEVED', {
                     fontSize: '24px',
-                    fontFamily: 'Inter',
+                    fontFamily: 'Geist',
                     fontStyle: 'bold',
                     color: '#10b981'
                 }).setOrigin(0.5);
 
                 this.add.text(centerX, centerY - 30, 'SCORE: ' + this.score, {
                     fontSize: '16px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#f5f5f5'
                 }).setOrigin(0.5);
 
@@ -1956,27 +1997,27 @@
                 if (this.activeUpdates > 0) {
                     this.add.text(centerX, centerY, 'PENDING UPDATES: -' + updatePenalty, {
                         fontSize: '14px',
-                        fontFamily: 'JetBrains Mono',
+                        fontFamily: 'Geist Mono',
                         color: '#ef4444'
                     }).setOrigin(0.5);
                 }
 
                 this.add.text(centerX, centerY + 35, 'FINAL SCORE: ' + finalScore, {
                     fontSize: '20px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#10b981'
                 }).setOrigin(0.5);
 
-                this.add.text(centerX, centerY + 80, 'PRESS SPACE TO RESTART', {
+                const restartBtn = this.add.text(centerX, centerY + 80, 'CLICK OR PRESS SPACE TO RESTART', {
                     fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#666666'
-                }).setOrigin(0.5);
+                }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-                this.input.keyboard.once('keydown-SPACE', () => {
-                    this.scene.restart();
-                });
+                const restart = () => this.scene.restart();
+                this.input.keyboard.once('keydown-SPACE', restart);
+                restartBtn.once('pointerdown', restart);
             }
 
             loseGame(enemy) {
@@ -2011,7 +2052,7 @@
                 // Non-compliance alert badge - flashing
                 const alertBadge = this.add.text(centerX, centerY - 120, '⚠ NON-COMPLIANCE ALERT ⚠', {
                     fontSize: '14px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#ef4444',
                     backgroundColor: '#991b1b33',
@@ -2021,7 +2062,7 @@
                 // Main AUDIT FAILED text - starts scaled to 0
                 const auditFailedText = this.add.text(centerX, centerY - 50, 'AUDIT FAILED', {
                     fontSize: '42px',
-                    fontFamily: 'Inter',
+                    fontFamily: 'Geist',
                     fontStyle: 'bold',
                     color: '#ef4444'
                 }).setOrigin(0.5).setScale(0);
@@ -2067,7 +2108,7 @@
                 // Other elements fade in
                 const withdrawnText = this.add.text(centerX, centerY + 10, 'Product withdrawn from market', {
                     fontSize: '14px',
-                    fontFamily: 'Inter',
+                    fontFamily: 'Geist',
                     color: '#888888'
                 }).setOrigin(0.5).setAlpha(0);
 
@@ -2075,7 +2116,7 @@
                 const targetPenalty = 2000000000;
                 const penaltyText = this.add.text(centerX, centerY + 50, 'PENALTY: ' + currency + ' 0', {
                     fontSize: '20px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#ef4444'
                 }).setOrigin(0.5).setAlpha(0);
@@ -2095,15 +2136,15 @@
 
                 const scoreText = this.add.text(centerX, centerY + 90, 'FINAL SCORE: ' + this.score, {
                     fontSize: '16px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#f5f5f5'
                 }).setOrigin(0.5).setAlpha(0);
 
-                const restartText = this.add.text(centerX, centerY + 130, 'PRESS SPACE TO RESTART', {
+                const restartText = this.add.text(centerX, centerY + 130, 'CLICK OR PRESS SPACE TO RESTART', {
                     fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     color: '#666666'
-                }).setOrigin(0.5).setAlpha(0);
+                }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
 
                 // Staggered fade-in for other elements
                 this.tweens.add({
@@ -2131,9 +2172,9 @@
                     delay: 1000
                 });
 
-                this.input.keyboard.once('keydown-SPACE', () => {
-                    this.scene.restart();
-                });
+                const restart = () => this.scene.restart();
+                this.input.keyboard.once('keydown-SPACE', restart);
+                restartText.once('pointerdown', restart);
             }
         }
 
