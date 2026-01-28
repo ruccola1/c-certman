@@ -1,36 +1,13 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CertMan™ | Compliance Chase</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <title>CertMan™ - Compliance Chase</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&family=Geist+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        charcoal: "#0a0a0a",
-                        "surface-dark": "#141414",
-                        "surface-light": "#1e1e1e",
-                        "vibrant-green": "#10b981",
-                        "brand-white": "#f5f5f5",
-                        "muted-red": "#991b1b",
-                    },
-                    fontFamily: {
-                        sans: ["Inter", "sans-serif"],
-                        mono: ["JetBrains Mono", "monospace"],
-                    },
-                },
-            },
-        };
-    </script>
     <style>
         * {
             margin: 0;
@@ -38,168 +15,22 @@
             box-sizing: border-box;
         }
         body {
-            font-family: 'Inter', sans-serif;
-        }
-        .grid-pattern {
-            background-image:
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
-        }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 3s infinite;
-        }
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #080810 0%, #0d1a2d 50%, #142840 100%);
+            font-family: 'Geist', sans-serif;
         }
         #game-container {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        #game-container canvas {
-            display: block;
+            border: 2px solid #4E8DDD;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(78, 141, 221, 0.4);
         }
     </style>
 </head>
-<body class="bg-charcoal text-brand-white min-h-screen flex flex-col">
-    <!-- Background Grid Pattern -->
-    <div class="fixed inset-0 grid-pattern pointer-events-none"></div>
-
-    <!-- Header -->
-    <header class="border-b border-white/10 px-8 py-4 flex items-center justify-between bg-surface-dark sticky top-0 z-50">
-        <div class="flex items-center space-x-3">
-            <img src="assets/c-icon-pos.png" alt="CertMan" class="h-10 w-auto object-contain">
-            <div class="flex flex-col">
-                <span class="text-lg font-bold tracking-tighter leading-none">CERTMAN™</span>
-                <span class="text-[10px] text-white/40 font-mono tracking-[0.2em]">COMPLIANCE CHASE</span>
-            </div>
-        </div>
-        <div class="flex items-center space-x-8 text-sm">
-            <div class="flex flex-col items-end">
-                <span class="text-[10px] text-white/40 uppercase tracking-widest font-mono">System Status</span>
-                <span class="text-vibrant-green flex items-center gap-2 font-mono text-xs">
-                    <span class="w-1.5 h-1.5 bg-vibrant-green"></span>
-                    READY
-                </span>
-            </div>
-            <button id="mute-btn" class="border border-white/20 hover:bg-white hover:text-black transition-colors px-4 py-2 text-[10px] font-bold uppercase tracking-widest font-mono flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">volume_up</span>
-                AUDIO
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="flex-1 flex items-center justify-center p-8 relative z-10">
-        <div class="flex gap-8 items-start">
-            <!-- Left Sidebar - Stats -->
-            <aside class="w-64 flex-col gap-4 hidden lg:flex">
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">How to Play</h3>
-                    <ul class="space-y-3 text-xs text-white/60">
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
-                            <span>Collect compliance elements</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
-                            <span>Avoid regulatory flags</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
-                            <span>Collect updates before timeout</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">Controls</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">WASD</span>
-                            <span class="text-xs text-white/50">Move</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">ARROWS</span>
-                            <span class="text-xs text-white/50">Move</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">SPACE</span>
-                            <span class="text-xs text-white/50">Start/Restart</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Game Container -->
-            <div class="flex flex-col items-center">
-                <div id="game-container" class="shadow-2xl"></div>
-            </div>
-
-            <!-- Right Sidebar - Collectibles -->
-            <aside class="w-64 flex-col gap-4 hidden lg:flex">
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 font-mono">Collectibles</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-vibrant-green"></div>
-                                <span class="text-xs text-white/70">Compliance Elements</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-vibrant-green" id="standards-count">0</span>
-                        </li>
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-blue-500"></div>
-                                <span class="text-xs text-white/70">Legislations</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-blue-400" id="legislations-count">0</span>
-                        </li>
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-amber-500"></div>
-                                <span class="text-xs text-white/70">Markings</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-amber-400" id="markings-count">0</span>
-                        </li>
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-white/30"></div>
-                                <span class="text-xs text-white/70">Requirements</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-white/50" id="requirements-count">0</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">Regulatory Threats</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-muted-red/20 border border-muted-red/30 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-red-400 text-sm">flag</span>
-                            </div>
-                            <span class="text-xs text-white/70">EU, US, Brazil, S.Korea</span>
-                        </li>
-                    </ul>
-                </div>
-            </aside>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="border-t border-white/10 px-8 py-4 bg-surface-dark text-[9px] font-mono text-white/30 flex items-center justify-between">
-        <div class="flex items-center gap-8">
-            <span class="flex items-center gap-2"><span class="w-1 h-1 bg-vibrant-green"></span> SYSTEM: OPERATIONAL</span>
-            <span>BUILD: v2.0.4</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <span class="uppercase tracking-[0.3em]">CERTEAN TECHNOLOGY SYSTEMS</span>
-        </div>
-    </footer>
+<body>
+    <div id="game-container"></div>
 
     <script>
         // ===== SOUND MANAGER (Web Audio API) =====
@@ -361,37 +192,37 @@
                         this.playTone(freq * 0.5, eighth * 1.1, 'triangle', 0.25, time);
                     };
 
-                    // Melody - A minor, serious tone (Am→Dm→E→Am, i-iv-V-i)
+                    // Melody on 1/8 note grid (0 = rest)
                     const melody = [
-                        // Bar 1: Am - low register, deliberate (i)
-                        220, 220, 262, 262, 330, 330, 330, 0,
-                        // Bar 2: Dm - weight and gravity (iv)
-                        294, 294, 349, 349, 294, 294, 262, 0,
-                        // Bar 3: E - tension with G# (V)
-                        330, 330, 415, 415, 494, 494, 330, 0,
-                        // Bar 4: Am - resolve, descending
-                        440, 392, 330, 330, 220, 220, 220, 0,
-                        // Bar 5: Dm→Am descent
-                        294, 294, 220, 220, 330, 330, 220, 0,
-                        // Bar 6: E→Am final resolve
-                        330, 415, 494, 494, 440, 330, 262, 220,
-                        // Bar 7-8: Am pedal tone
-                        220, 220, 220, 0, 0, 0, 0, 0,
+                        // Bar 1: Opening fanfare G-G-G-C---
+                        392, 392, 392, 523, 523, 523, 0, 0,
+                        // Bar 2: Bb-Bb-Bb-D---
+                        466, 466, 466, 587, 587, 587, 0, 0,
+                        // Bar 3: Climbing C-D-E-F-G---
+                        523, 587, 659, 698, 784, 784, 784, 0,
+                        // Bar 4: Descending F-E-D-C---
+                        698, 659, 587, 523, 523, 523, 0, 0,
+                        // Bar 5: Driving riff G-A-C-A-C-D-C-D
+                        392, 440, 523, 440, 523, 587, 523, 587,
+                        // Bar 6: E--- then C-E-G-C6---
+                        659, 659, 659, 0, 523, 659, 784, 1047,
+                        // Bar 7-8: Hold and end
+                        1047, 1047, 1047, 0, 0, 0, 0, 0,
                     ];
 
-                    // Bass - fifths in Am: A→D→E→A
+                    // Bass line on 1/8 grid (plays on beats 1, 3, 5, 7 of each bar)
                     const bassNotes = [
-                        // Bar 1-2: Am to Dm
-                        110, 0, 110, 0, 220, 0, 110, 0,
-                        73, 0, 73, 0, 147, 0, 73, 0,
-                        // Bar 3-4: E to Am (V-i)
-                        82, 0, 82, 0, 165, 0, 82, 0,
-                        110, 0, 110, 0, 220, 0, 110, 0,
-                        // Bar 5-6: Dm to E (iv-V)
-                        73, 0, 73, 0, 147, 0, 73, 0,
-                        82, 0, 82, 0, 165, 0, 82, 0,
-                        // Bar 7-8: Am resolve
-                        110, 0, 110, 0, 110, 0, 0, 0,
+                        // Bar 1-2: G bass
+                        98, 0, 98, 0, 196, 0, 98, 0,
+                        98, 0, 98, 0, 196, 0, 98, 0,
+                        // Bar 3-4: C bass
+                        131, 0, 131, 0, 262, 0, 131, 0,
+                        131, 0, 131, 0, 262, 0, 131, 0,
+                        // Bar 5-6: G then C
+                        98, 0, 98, 0, 196, 0, 98, 0,
+                        131, 0, 131, 0, 262, 0, 131, 0,
+                        // Bar 7-8: C hold
+                        131, 0, 131, 0, 131, 0, 0, 0,
                     ];
 
                     const totalEighths = melody.length;
@@ -622,19 +453,6 @@
         // Global sound manager instance
         const soundManager = new SoundManager();
 
-        // Mute button functionality
-        document.getElementById('mute-btn').addEventListener('click', () => {
-            soundManager.muted = !soundManager.muted;
-            const btn = document.getElementById('mute-btn');
-            const icon = btn.querySelector('.material-symbols-outlined');
-            if (soundManager.muted) {
-                icon.textContent = 'volume_off';
-                soundManager.stopJingle();
-            } else {
-                icon.textContent = 'volume_up';
-            }
-        });
-
         // Game Configuration
         const TILE_SIZE = 32;
         const MAZE_WIDTH = 19;
@@ -668,51 +486,15 @@
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
         ];
 
-        // Collectibles categorized by type
-        const COLLECTIBLES = {
-            standards: [
-                // Safety
-                'EN 62368-1', 'EN 60335-1', 'EN 62479', 'EN 50564', 'EN 60950-1',
-                // EMC
-                'EN 55032', 'EN 55035', 'EN 61000-3-2', 'EN 61000-3-3', 'EN 61000-6-1',
-                // Radio
-                'EN 300 328', 'EN 301 489-1', 'EN 301 489-17', 'EN 300 440',
-                // Quality
-                'ISO 9001', 'ISO 14001', 'ISO 45001', 'ISO 27001'
-            ],
-            legislations: [
-                // EU Legislations
-                'RED 2014/53/EU', 'LVD 2014/35/EU', 'EMC 2014/30/EU', 'RoHS 2011/65/EU',
-                'WEEE 2012/19/EU', 'REACH 1907/2006', 'GPSR 2023/988', 'Ecodesign 2024',
-                'Battery Reg 2023', 'CRA 2024', 'AI Act 2024', 'CSRD 2022',
-                // US Legislations
-                'FCC Part 15', 'FCC Part 18', 'UL 62368-1', 'CA Prop 65',
-                // Other
-                'UKCA 2021', 'KC Mark', 'ANATEL', 'BIS India'
-            ],
-            markings: [
-                'CE', 'UKCA', 'FCC', 'UL', 'CSA', 'TUV', 'GS', 'KC',
-                'CCC', 'PSE', 'BSMI', 'NOM', 'S-Mark', 'EAC', 'INMETRO'
-            ],
-            requirements: [
-                'DoC', 'Tech File', 'Risk Assess', 'Test Report', 'User Manual',
-                'Label Design', 'Traceability', 'QMS Audit', 'Supply Chain',
-                'Material Dec', 'SCIP DB', 'EPR Register', 'Take-back',
-                'Recycling Info', 'Battery Label', 'Energy Label', 'Packaging',
-                'Chemical Test', 'EMC Test', 'Safety Test', 'Radio Test',
-                'Notified Body', 'Self-Cert', 'Type Exam', 'Surveillance'
-            ]
-        };
-
-        // Legacy compatibility
-        const STANDARDS = COLLECTIBLES.standards;
+        // Compliance standards to collect (legislation + harmonized standards)
+        const STANDARDS = ['CE', 'RoHS', 'WEEE', 'EN 62368-1', 'EN 55032'];
 
         // Enemy flags (country flags)
         const FLAGS = [
             { name: 'EU', color: 0x003399, starColor: 0xFFCC00 },         // European Union
             { name: 'US', color: 0xBF0A30, stripeColor: 0xFFFFFF },       // United States
             { name: 'Brazil', color: 0x009739, diamondColor: 0xFEDD00 },  // Brazil
-            { name: 'S.Korea', color: 0xFFFFFF, symbolColor: 0xCD2E3A }   // South Korea
+            { name: 'South Korea', color: 0xFFFFFF, symbolColor: 0xCD2E3A }
         ];
 
         class BootScene extends Phaser.Scene {
@@ -725,12 +507,12 @@
                 const loadingText = this.add.text(
                     this.cameras.main.centerX,
                     this.cameras.main.centerY,
-                    'INITIALIZING...',
-                    { fontSize: '14px', color: '#10b981', fontFamily: 'JetBrains Mono' }
+                    'Loading...',
+                    { fontSize: '24px', color: '#4E8DDD', fontFamily: 'Geist' }
                 ).setOrigin(0.5);
 
                 // Load CertMan logo SVG as data URL to avoid CORS issues
-                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#10b981" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
+                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#244293" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
                 const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
                 const svgUrl = URL.createObjectURL(svgBlob);
                 this.load.svg('player', svgUrl, { width: 64, height: 64 });
@@ -765,19 +547,19 @@
                     canvas.refresh();
                 } else {
                     const g = this.make.graphics({ x: 0, y: 0, add: false });
-                    g.fillStyle(0x10b981, 1);
+                    g.fillStyle(0x0099FF, 1);
                     g.beginPath();
                     g.moveTo(16, 2); g.lineTo(30, 9); g.lineTo(30, 23);
                     g.lineTo(16, 30); g.lineTo(2, 23); g.lineTo(2, 9);
                     g.closePath();
                     g.fillPath();
-                    g.fillStyle(0x0a0a0a, 1);
+                    g.fillStyle(0x080810, 1);
                     g.beginPath();
                     g.moveTo(16, 8); g.lineTo(24, 12); g.lineTo(24, 20);
                     g.lineTo(16, 24); g.lineTo(8, 20); g.lineTo(8, 12);
                     g.closePath();
                     g.fillPath();
-                    g.fillStyle(0x10b981, 1);
+                    g.fillStyle(0x0099FF, 1);
                     g.fillTriangle(16, 16, 8, 12, 8, 20);
                     g.fillTriangle(16, 16, 16, 8, 8, 12);
                     g.fillTriangle(16, 16, 8, 20, 16, 24);
@@ -786,7 +568,7 @@
 
                 // Create open mouth texture (with wedge cut out on right side)
                 const g2 = this.make.graphics({ x: 0, y: 0, add: false });
-                g2.fillStyle(0x10b981, 1);
+                g2.fillStyle(0x0099FF, 1);
                 // Hexagon with mouth opening (wedge cut from right)
                 g2.beginPath();
                 g2.moveTo(16, 2);    // top
@@ -799,13 +581,13 @@
                 g2.closePath();
                 g2.fillPath();
                 // Inner structure (simplified for open mouth)
-                g2.fillStyle(0x0a0a0a, 1);
+                g2.fillStyle(0x080810, 1);
                 g2.beginPath();
                 g2.moveTo(16, 8); g2.lineTo(20, 11); g2.lineTo(16, 16);
                 g2.lineTo(20, 21); g2.lineTo(16, 24); g2.lineTo(8, 20); g2.lineTo(8, 12);
                 g2.closePath();
                 g2.fillPath();
-                g2.fillStyle(0x10b981, 1);
+                g2.fillStyle(0x0099FF, 1);
                 g2.fillTriangle(16, 16, 8, 12, 8, 20);
                 g2.fillTriangle(16, 16, 16, 8, 8, 12);
                 g2.fillTriangle(16, 16, 8, 20, 16, 24);
@@ -813,64 +595,17 @@
             }
 
             createPlaceholderAssets() {
-                // Create textures for each collectible category
-
-                // Compliance Elements - vibrant green
-                const gStd = this.make.graphics({ x: 0, y: 0, add: false });
-                gStd.fillStyle(0x141414, 1);
-                gStd.fillRect(2, 2, 12, 12);
-                gStd.lineStyle(1, 0x10b981, 0.7);
-                gStd.strokeRect(2, 2, 12, 12);
-                gStd.fillStyle(0x10b981, 0.9);
-                gStd.fillRect(5, 6, 6, 2);
-                gStd.fillRect(5, 9, 4, 2);
-                gStd.generateTexture('dot_standard', 16, 16);
-
-                // Legislations - blue
-                const gLeg = this.make.graphics({ x: 0, y: 0, add: false });
-                gLeg.fillStyle(0x141414, 1);
-                gLeg.fillRect(2, 2, 12, 12);
-                gLeg.lineStyle(1, 0x3b82f6, 0.7);
-                gLeg.strokeRect(2, 2, 12, 12);
-                gLeg.fillStyle(0x3b82f6, 0.9);
-                gLeg.fillRect(5, 5, 6, 1);
-                gLeg.fillRect(5, 7, 6, 1);
-                gLeg.fillRect(5, 9, 6, 1);
-                gLeg.fillRect(5, 11, 4, 1);
-                gLeg.generateTexture('dot_legislation', 16, 16);
-
-                // Markings - amber/gold
-                const gMark = this.make.graphics({ x: 0, y: 0, add: false });
-                gMark.fillStyle(0x141414, 1);
-                gMark.fillCircle(8, 8, 6);
-                gMark.lineStyle(1, 0xf59e0b, 0.8);
-                gMark.strokeCircle(8, 8, 6);
-                gMark.fillStyle(0xf59e0b, 0.9);
-                gMark.fillCircle(8, 8, 3);
-                gMark.generateTexture('dot_marking', 16, 16);
-
-                // Requirements - darker/muted (most common)
-                const gReq = this.make.graphics({ x: 0, y: 0, add: false });
-                gReq.fillStyle(0x1a1a1a, 1);
-                gReq.fillRect(3, 3, 10, 10);
-                gReq.fillStyle(0x444444, 0.8);
-                gReq.fillRect(5, 5, 6, 1);
-                gReq.fillRect(5, 7, 4, 1);
-                gReq.fillRect(5, 9, 5, 1);
-                gReq.generateTexture('dot_requirement', 16, 16);
-
-                // Legacy support - map old standard textures
-                for (let i = 0; i < 5; i++) {
+                // Darker blue-tinted colors
+                const standardColors = [0x2A4D7A, 0x2D5080, 0x1E3660, 0x3B5980, 0x4A6090];
+                STANDARDS.forEach((standard, i) => {
                     const g = this.make.graphics({ x: 0, y: 0, add: false });
-                    g.fillStyle(0x141414, 1);
-                    g.fillRect(2, 2, 12, 12);
-                    g.lineStyle(1, 0x10b981, 0.5);
-                    g.strokeRect(2, 2, 12, 12);
-                    g.fillStyle(0x10b981, 0.8);
+                    g.fillStyle(standardColors[i], 1);
+                    g.fillRoundedRect(2, 2, 12, 12, 3);
+                    g.fillStyle(0x8899AA, 0.6);
                     g.fillRect(5, 6, 6, 2);
                     g.fillRect(5, 9, 4, 2);
                     g.generateTexture('standard_' + i, 16, 16);
-                }
+                });
 
                 // Create flag enemies
                 FLAGS.forEach((flag, i) => {
@@ -878,7 +613,7 @@
 
                     // Base rectangle
                     g.fillStyle(flag.color, 1);
-                    g.fillRect(2, 4, 28, 24);
+                    g.fillRoundedRect(2, 4, 28, 24, 4);
 
                     // Add distinctive element based on flag
                     if (flag.name === 'EU') {
@@ -910,7 +645,7 @@
                         g.fillPath();
                         g.fillStyle(0x002776, 1);
                         g.fillCircle(16, 16, 6);
-                    } else if (flag.name === 'S.Korea') {
+                    } else if (flag.name === 'South Korea') {
                         // South Korea yin-yang
                         g.fillStyle(flag.symbolColor, 1);
                         g.fillCircle(16, 16, 8);
@@ -922,24 +657,24 @@
                     g.generateTexture('flag_' + i, 32, 32);
                 });
 
-                // Create wall texture - gray fill with black border
+                // Create wall texture - blue tint
                 const wallGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-                wallGraphics.fillStyle(0x1a1a1a, 1);
+                wallGraphics.fillStyle(0x14253e, 1);
                 wallGraphics.fillRect(0, 0, 32, 32);
-                wallGraphics.lineStyle(1, 0x000000, 1);
-                wallGraphics.strokeRect(1, 1, 30, 30);
+                wallGraphics.lineStyle(2, 0x3a5a8a, 1);
+                wallGraphics.strokeRect(2, 2, 28, 28);
                 wallGraphics.generateTexture('wall', 32, 32);
 
-                // Create "update" dot texture - vibrant green cyber look
+                // Create "update" dot texture - cool cyan/teal cyber look
                 const updateGraphics = this.make.graphics({ x: 0, y: 0, add: false });
                 // Outer glow
-                updateGraphics.fillStyle(0x10b981, 0.3);
+                updateGraphics.fillStyle(0x00FFD4, 0.3);
                 updateGraphics.fillCircle(12, 12, 11);
                 // Middle ring
-                updateGraphics.fillStyle(0x10b981, 0.6);
+                updateGraphics.fillStyle(0x00CED1, 0.6);
                 updateGraphics.fillCircle(12, 12, 8);
                 // Inner core
-                updateGraphics.fillStyle(0x10b981, 1);
+                updateGraphics.fillStyle(0x00FFFF, 1);
                 updateGraphics.fillCircle(12, 12, 5);
                 // Bright center
                 updateGraphics.fillStyle(0xFFFFFF, 1);
@@ -972,58 +707,80 @@
                     document.addEventListener(evt, initSound, { once: true });
                 });
 
-                // Modern minimal title
-                this.add.text(centerX, centerY - 100, 'CERTMAN™', {
-                    fontSize: '48px',
-                    fontFamily: 'Inter',
+                // Title - CertMan™ fun typography with bouncy letters
+                const titleY = centerY - 120;
+                const letters = [
+                    { char: 'C', color: '#FF6B6B', offset: -95 },
+                    { char: 'e', color: '#4ECDC4', offset: -65 },
+                    { char: 'r', color: '#FFE66D', offset: -42 },
+                    { char: 't', color: '#95E1D3', offset: -22 },
+                    { char: 'M', color: '#DDA0DD', offset: 8 },
+                    { char: 'a', color: '#98D8C8', offset: 42 },
+                    { char: 'n', color: '#F7DC6F', offset: 68 },
+                    { char: '™', color: '#77B3FF', offset: 95, size: '24px' }
+                ];
+
+                letters.forEach((letter, i) => {
+                    const text = this.add.text(centerX + letter.offset, titleY, letter.char, {
+                        fontSize: letter.size || '56px',
+                        fontFamily: 'Geist',
+                        fontStyle: 'bold',
+                        color: letter.color,
+                        stroke: '#1a1a40',
+                        strokeThickness: 4
+                    }).setOrigin(0.5);
+
+                    // Add bouncy animation to each letter
+                    this.tweens.add({
+                        targets: text,
+                        y: titleY - 8,
+                        duration: 400,
+                        ease: 'Sine.easeInOut',
+                        yoyo: true,
+                        repeat: -1,
+                        delay: i * 80
+                    });
+                });
+
+                this.add.text(centerX, centerY - 60, 'COMPLIANCE CHASE', {
+                    fontSize: '32px',
+                    fontFamily: 'Geist',
                     fontStyle: 'bold',
-                    color: '#f5f5f5',
-                    letterSpacing: '-2px'
+                    color: '#77B3FF'
                 }).setOrigin(0.5);
-
-                this.add.text(centerX, centerY - 55, 'COMPLIANCE CHASE', {
-                    fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#10b981',
-                    letterSpacing: '4px'
-                }).setOrigin(0.5);
-
-                // Divider line
-                const line = this.add.rectangle(centerX, centerY - 20, 60, 2, 0x10b981);
 
                 // Instructions
-                this.add.text(centerX, centerY + 20, 'Collect compliance elements', {
-                    fontSize: '14px',
-                    fontFamily: 'Inter',
-                    color: '#666666'
+                this.add.text(centerX, centerY + 20, 'Collect all compliance standards!', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#FFFFFF'
                 }).setOrigin(0.5);
 
-                this.add.text(centerX, centerY + 45, 'Avoid regulatory flags', {
-                    fontSize: '14px',
-                    fontFamily: 'Inter',
-                    color: '#666666'
+                this.add.text(centerX, centerY + 50, 'Avoid the regulatory flags!', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#77B3FF'
                 }).setOrigin(0.5);
 
-                // Controls hint
-                this.add.text(centerX, centerY + 90, 'WASD or ARROWS to move', {
-                    fontSize: '11px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#444444'
+                this.add.text(centerX, centerY + 100, 'Use ARROW KEYS or WASD to move', {
+                    fontSize: '16px',
+                    fontFamily: 'Geist Mono',
+                    color: '#4E8DDD'
                 }).setOrigin(0.5);
 
                 // Start button
-                const startButton = this.add.text(centerX, centerY + 140, 'PRESS SPACE TO START', {
-                    fontSize: '14px',
-                    fontFamily: 'JetBrains Mono',
+                const startButton = this.add.text(centerX, centerY + 160, 'PRESS SPACE TO START', {
+                    fontSize: '24px',
+                    fontFamily: 'Geist',
                     fontStyle: 'bold',
-                    color: '#10b981'
+                    color: '#AAD4FF'
                 }).setOrigin(0.5);
 
                 // Blink effect
                 this.tweens.add({
                     targets: startButton,
                     alpha: 0.3,
-                    duration: 600,
+                    duration: 500,
                     yoyo: true,
                     repeat: -1
                 });
@@ -1058,22 +815,12 @@
                 this.mouthOpen = false;
                 this.chompTimer = 0;
                 this.chompInterval = 100; // ms between chomp frames
-                // Category counts
-                this.counts = {
-                    standards: 0,
-                    legislations: 0,
-                    markings: 0,
-                    requirements: 0
-                };
             }
 
             create() {
                 // Start/continue the background music (loops automatically)
                 soundManager.init();
                 soundManager.playSpaceHero();
-
-                // Reset sidebar counts
-                this.updateSidebarCounts();
 
                 // Create maze
                 this.createMaze();
@@ -1125,23 +872,7 @@
 
             createCollectibles() {
                 this.dots = this.physics.add.group();
-                let dotIndex = 0;
-
-                // Distribution: 50% requirements, 20% compliance elements, 20% legislations, 10% markings
-                const getRandomCategory = () => {
-                    const rand = Math.random();
-                    if (rand < 0.50) return 'requirements';
-                    if (rand < 0.70) return 'standards';
-                    if (rand < 0.90) return 'legislations';
-                    return 'markings';
-                };
-
-                const categoryIndices = {
-                    standards: 0,
-                    legislations: 0,
-                    markings: 0,
-                    requirements: 0
-                };
+                let standardIndex = 0;
 
                 for (let y = 0; y < MAZE_HEIGHT; y++) {
                     for (let x = 0; x < MAZE_WIDTH; x++) {
@@ -1149,28 +880,15 @@
                             // Store valid spawn positions for later updates
                             this.validSpawnPositions.push({ x, y });
 
-                            const category = getRandomCategory();
-                            const items = COLLECTIBLES[category];
-                            const itemIndex = categoryIndices[category] % items.length;
-                            categoryIndices[category]++;
-
-                            const textureMap = {
-                                standards: 'dot_standard',
-                                legislations: 'dot_legislation',
-                                markings: 'dot_marking',
-                                requirements: 'dot_requirement'
-                            };
-
                             const dot = this.dots.create(
                                 x * TILE_SIZE + TILE_SIZE / 2,
                                 y * TILE_SIZE + TILE_SIZE / 2,
-                                textureMap[category]
+                                'standard_' + (standardIndex % STANDARDS.length)
                             );
-                            dot.itemName = items[itemIndex];
-                            dot.category = category;
-                            dot.setDisplaySize(category === 'requirements' ? 12 : 14, category === 'requirements' ? 12 : 14);
+                            dot.standardName = STANDARDS[standardIndex % STANDARDS.length];
+                            dot.setDisplaySize(16, 16);
                             dot.isUpdate = false;
-                            dotIndex++;
+                            standardIndex++;
                             this.totalDots++;
                         }
                     }
@@ -1212,18 +930,17 @@
                     pos.y * TILE_SIZE + TILE_SIZE / 2,
                     'update_dot'
                 );
-                updateDot.itemName = 'UPDATE';
-                updateDot.category = 'update';
+                updateDot.standardName = 'UPDATE';
                 updateDot.setDisplaySize(20, 20);
                 updateDot.isUpdate = true;
                 this.totalDots++;
 
-                // Add "UPDATE" label above the dot - green theme
+                // Add "UPDATE" label above the dot - cyan theme
                 const label = this.add.text(updateDot.x, updateDot.y - 18, 'UPDATE', {
                     fontSize: '9px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
-                    color: '#10b981'
+                    color: '#00FFFF'
                 }).setOrigin(0.5);
                 updateDot.label = label;
 
@@ -1252,7 +969,7 @@
                 // Increment updates counter
                 this.activeUpdates++;
                 this.totalUpdatesAdded++;
-                this.updatesText.setText('UPDATES: ' + this.activeUpdates);
+                this.updatesText.setText('Updates: ' + this.activeUpdates);
 
                 // Show alert if too many untaken updates
                 this.checkUpdateAlert();
@@ -1265,17 +982,6 @@
                         this.updateCountdown = 10;
                         this.updateAlertText();
                         this.updateAlert.setVisible(true);
-
-                        // Flash animation
-                        if (this.alertFlashTween) this.alertFlashTween.stop();
-                        this.alertFlashTween = this.tweens.add({
-                            targets: this.updateAlert,
-                            alpha: 0.3,
-                            duration: 300,
-                            ease: 'Sine.easeInOut',
-                            yoyo: true,
-                            repeat: -1
-                        });
 
                         // Start countdown timer
                         if (this.countdownEvent) this.countdownEvent.remove();
@@ -1293,17 +999,12 @@
                         this.countdownEvent = null;
                     }
                     this.updateAlert.setVisible(false);
-                    this.updateAlert.setAlpha(1);
-                    if (this.alertFlashTween) {
-                        this.alertFlashTween.stop();
-                        this.alertFlashTween = null;
-                    }
                     this.updateCountdown = 10;
                 }
             }
 
             updateAlertText() {
-                this.updateAlert.setText('REGULATORY UPDATES PENDING: ' + this.updateCountdown + 's');
+                this.updateAlert.setText('Too many regulatory updates! ' + this.updateCountdown + 's');
             }
 
             tickCountdown() {
@@ -1311,8 +1012,8 @@
                 if (this.updateCountdown <= 0) {
                     // Time's up - lose a life
                     this.lives--;
-                    this.livesText.setText('PRODUCTS: ' + this.lives);
-                    this.cameras.main.flash(200, 153, 27, 27);
+                    this.livesText.setText('Products: ' + this.lives);
+                    this.cameras.main.flash(200, 255, 0, 0);
                     soundManager.playHit();
 
                     if (this.lives <= 0) {
@@ -1381,47 +1082,46 @@
                     enemy.direction = spawn.dir;
                     enemy.spawnX = spawn.x * TILE_SIZE + TILE_SIZE / 2;
                     enemy.spawnY = spawn.y * TILE_SIZE + TILE_SIZE / 2;
+                    enemy.lastDirectionChange = 0; // Cooldown to prevent freeze from rapid changes
                 }
             }
 
             createUI() {
-                // Score - modern mono style
-                this.scoreText = this.add.text(16, MAZE_HEIGHT * TILE_SIZE + 8, 'SCORE: 0', {
-                    fontSize: '24px',
-                    fontFamily: 'JetBrains Mono',
-                    fontStyle: 'bold',
-                    color: '#10b981',
-                    shadow: { offsetX: 2, offsetY: 2, color: '#065f46', blur: 4, fill: true }
+                // Score - blue tint with Geist Mono
+                this.scoreText = this.add.text(16, MAZE_HEIGHT * TILE_SIZE + 8, 'Score: 0', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist Mono',
+                    color: '#77B3FF'
                 });
 
                 // Products
-                this.livesText = this.add.text(MAZE_WIDTH * TILE_SIZE - 110, MAZE_HEIGHT * TILE_SIZE + 8, 'PRODUCTS: 3', {
-                    fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#f5f5f5'
+                this.livesText = this.add.text(MAZE_WIDTH * TILE_SIZE - 130, MAZE_HEIGHT * TILE_SIZE + 8, 'Products: 3', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist Mono',
+                    color: '#FFFFFF'
                 });
 
                 // Progress
                 this.progressText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 8, '0/' + this.totalDots, {
-                    fontSize: '11px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#666666'
+                    fontSize: '16px',
+                    fontFamily: 'Geist Mono',
+                    color: '#4E8DDD'
                 }).setOrigin(0.5, 0);
 
                 // Updates counter
-                this.updatesText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 22, 'UPDATES: 0', {
-                    fontSize: '10px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#10b981'
+                this.updatesText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 26, 'Updates: 0', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#00FFFF'
                 }).setOrigin(0.5, 0);
 
                 // Update alert with countdown (hidden by default) - positioned near top of game
                 this.updateAlert = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
-                    fontSize: '11px',
-                    fontFamily: 'JetBrains Mono',
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: '#FFFFFF',
-                    backgroundColor: '#991b1b',
+                    backgroundColor: '#CC0000',
                     padding: { x: 10, y: 6 }
                 }).setOrigin(0.5, 0.5).setDepth(100);
                 this.updateAlert.setVisible(false);
@@ -1591,18 +1291,20 @@
                         this.changeEnemyDirection(enemy);
                     }
 
-                    // Check if enemy is stuck (velocity blocked by wall)
+                    // Check if enemy is stuck (velocity blocked by wall) with cooldown to prevent freeze
+                    const now = this.time.now;
                     const isStuck = enemy.body &&
                         Math.abs(enemy.body.velocity.x) < 5 &&
                         Math.abs(enemy.body.velocity.y) < 5;
 
-                    if (isStuck) {
+                    if (isStuck && now - enemy.lastDirectionChange > 200) {
                         // Snap to nearest tile center and change direction
                         const tileX = Math.round((enemy.x - TILE_SIZE / 2) / TILE_SIZE);
                         const tileY = Math.round((enemy.y - TILE_SIZE / 2) / TILE_SIZE);
                         enemy.x = tileX * TILE_SIZE + TILE_SIZE / 2;
                         enemy.y = tileY * TILE_SIZE + TILE_SIZE / 2;
                         this.changeEnemyDirection(enemy);
+                        enemy.lastDirectionChange = now;
                     }
 
                     // Get current tile center
@@ -1680,40 +1382,18 @@
             collectDot(player, dot) {
                 // Check if it's an update dot (gives more points)
                 const isUpdate = dot.isUpdate;
-                const category = dot.category;
-
-                // Points based on category
-                const pointsMap = {
-                    standards: 20,
-                    legislations: 20,
-                    markings: 15,
-                    requirements: 5
-                };
-                const points = isUpdate ? 50 : (pointsMap[category] || 10);
-
-                // Colors based on category
-                const colorMap = {
-                    standards: '#10b981',
-                    legislations: '#3b82f6',
-                    markings: '#f59e0b',
-                    requirements: '#666666'
-                };
-                const textColor = isUpdate ? '#10b981' : (colorMap[category] || '#f5f5f5');
+                const points = isUpdate ? 50 : 10;
+                const textColor = '#FFFFFF';
 
                 // Play appropriate sound effect
                 if (isUpdate) {
                     soundManager.playUpdateCollect();
                     // Decrement updates counter
                     this.activeUpdates--;
-                    this.updatesText.setText('UPDATES: ' + this.activeUpdates);
+                    this.updatesText.setText('Updates: ' + this.activeUpdates);
                     this.checkUpdateAlert();
                 } else {
                     soundManager.playChomp();
-                    // Update category count
-                    if (category && this.counts[category] !== undefined) {
-                        this.counts[category]++;
-                        this.updateSidebarCounts();
-                    }
                 }
 
                 // Destroy label if it's an update dot
@@ -1723,19 +1403,18 @@
 
                 const dotX = dot.x;
                 const dotY = dot.y;
-                const itemName = dot.itemName || dot.standardName || 'ITEM';
+                const standardName = dot.standardName;
 
                 dot.destroy();
                 this.score += points;
                 this.collectedDots++;
-                this.scoreText.setText('SCORE: ' + this.score);
+                this.scoreText.setText('Score: ' + this.score);
                 this.progressText.setText(this.collectedDots + '/' + this.totalDots);
 
-                // Show collected item name (shorter for requirements)
-                const displayName = category === 'requirements' ? '+' + points : itemName;
-                const nameText = this.add.text(dotX, dotY - 20, displayName + (isUpdate ? ' +50' : ''), {
-                    fontSize: category === 'requirements' ? '9px' : '11px',
-                    fontFamily: 'JetBrains Mono',
+                // Show collected standard name
+                const nameText = this.add.text(dotX, dotY - 20, standardName + (isUpdate ? ' +50' : ''), {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
                     color: textColor
                 }).setOrigin(0.5);
@@ -1744,25 +1423,14 @@
                     targets: nameText,
                     y: dotY - 50,
                     alpha: 0,
-                    duration: 800,
+                    duration: 1000,
                     onComplete: () => nameText.destroy()
                 });
 
-                // Game continues indefinitely - no win condition
-                // Updates keep spawning to keep the game going
-            }
-
-            updateSidebarCounts() {
-                // Update the HTML sidebar counts
-                const stdEl = document.getElementById('standards-count');
-                const legEl = document.getElementById('legislations-count');
-                const markEl = document.getElementById('markings-count');
-                const reqEl = document.getElementById('requirements-count');
-
-                if (stdEl) stdEl.textContent = this.counts.standards;
-                if (legEl) legEl.textContent = this.counts.legislations;
-                if (markEl) markEl.textContent = this.counts.markings;
-                if (reqEl) reqEl.textContent = this.counts.requirements;
+                // Check win condition - all dots collected
+                if (this.dots.countActive() === 0) {
+                    this.winGame();
+                }
             }
 
             hitEnemy(player, enemy) {
@@ -1772,10 +1440,10 @@
                 soundManager.playHit();
 
                 this.lives--;
-                this.livesText.setText('PRODUCTS: ' + this.lives);
+                this.livesText.setText('Products: ' + this.lives);
 
                 // Flash screen
-                this.cameras.main.flash(200, 153, 27, 27);
+                this.cameras.main.flash(200, 255, 0, 0);
 
                 if (this.lives <= 0) {
                     this.loseGame(enemy);
@@ -1788,13 +1456,13 @@
                     const centerY = this.cameras.main.centerY;
 
                     const overlay = this.add.rectangle(centerX, centerY,
-                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.85);
+                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x080810, 0.7);
 
-                    const caughtText = this.add.text(centerX, centerY, 'CAUGHT BY ' + enemy.flagName.toUpperCase() + ' AUTHORITIES', {
-                        fontSize: '16px',
-                        fontFamily: 'JetBrains Mono',
+                    const caughtText = this.add.text(centerX, centerY, 'Caught by ' + enemy.flagName + ' authorities', {
+                        fontSize: '24px',
+                        fontFamily: 'Geist',
                         fontStyle: 'bold',
-                        color: '#ef4444'
+                        color: '#FF6B6B'
                     }).setOrigin(0.5);
 
                     // After 3 seconds, remove message and continue
@@ -1829,7 +1497,8 @@
                 this.player.setVelocity(0);
                 this.enemies.getChildren().forEach(e => e.setVelocity(0));
 
-                // Play win fanfare
+                // Stop background music and play win fanfare
+                soundManager.stopJingle();
                 soundManager.playWin();
 
                 const centerX = this.cameras.main.centerX;
@@ -1837,25 +1506,48 @@
 
                 // Overlay with dark theme
                 const overlay = this.add.rectangle(centerX, centerY,
-                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.92);
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x080810, 0.92);
 
-                this.add.text(centerX, centerY - 60, 'COMPLIANCE ACHIEVED', {
-                    fontSize: '24px',
-                    fontFamily: 'Inter',
+                // Get all country names from FLAGS
+                const countries = FLAGS.map(f => f.name).join(', ');
+
+                this.add.text(centerX, centerY - 100, 'LEVEL COMPLETE!', {
+                    fontSize: '36px',
+                    fontFamily: 'Geist',
                     fontStyle: 'bold',
-                    color: '#10b981'
+                    color: '#4ECDC4'
                 }).setOrigin(0.5);
 
-                this.add.text(centerX, centerY, 'FINAL SCORE: ' + this.score, {
+                this.add.text(centerX, centerY - 50, 'Congratulations!', {
+                    fontSize: '28px',
+                    fontFamily: 'Geist',
+                    fontStyle: 'bold',
+                    color: '#FFE66D'
+                }).setOrigin(0.5);
+
+                this.add.text(centerX, centerY + 10, 'Your product is approved for:', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#FFFFFF'
+                }).setOrigin(0.5);
+
+                this.add.text(centerX, centerY + 45, countries, {
                     fontSize: '20px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#f5f5f5'
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#77B3FF'
                 }).setOrigin(0.5);
 
-                this.add.text(centerX, centerY + 60, 'PRESS SPACE TO RESTART', {
-                    fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#666666'
+                this.add.text(centerX, centerY + 90, 'Final Score: ' + this.score, {
+                    fontSize: '24px',
+                    fontFamily: 'Geist Mono',
+                    color: '#FFFFFF'
+                }).setOrigin(0.5);
+
+                this.add.text(centerX, centerY + 130, 'Press SPACE to play again', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#4E8DDD'
                 }).setOrigin(0.5);
 
                 this.input.keyboard.once('keydown-SPACE', () => {
@@ -1879,7 +1571,7 @@
                     'EU': '€',
                     'US': '$',
                     'Brazil': 'R$',
-                    'S.Korea': '₩'
+                    'South Korea': '₩'
                 };
 
                 const countryName = enemy ? enemy.flagName : 'Unknown';
@@ -1887,51 +1579,39 @@
 
                 // Overlay with dark theme
                 const overlay = this.add.rectangle(centerX, centerY,
-                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.92);
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x080810, 0.92);
 
-                // Non-compliance alert badge
-                const alertBadge = this.add.text(centerX, centerY - 100, 'NON-COMPLIANCE ALERT', {
-                    fontSize: '10px',
-                    fontFamily: 'JetBrains Mono',
-                    fontStyle: 'bold',
-                    color: '#ef4444',
-                    backgroundColor: '#991b1b33',
-                    padding: { x: 12, y: 4 }
+                this.add.text(centerX, centerY - 80, 'Caught by ' + countryName + ' authorities', {
+                    fontSize: '20px',
+                    fontFamily: 'Geist',
+                    color: '#FF6B6B'
                 }).setOrigin(0.5);
 
-                this.add.text(centerX, centerY - 60, 'AUDIT FAILED', {
+                this.add.text(centerX, centerY - 40, 'AUDIT FAILED!', {
                     fontSize: '32px',
-                    fontFamily: 'Inter',
+                    fontFamily: 'Geist',
                     fontStyle: 'bold',
-                    color: '#f5f5f5'
+                    color: '#FF4D6D'
                 }).setOrigin(0.5);
 
-                // Red line divider
-                this.add.rectangle(centerX, centerY - 30, 50, 2, 0xef4444);
-
-                this.add.text(centerX, centerY + 5, 'Product withdrawn from ' + countryName + ' market', {
-                    fontSize: '12px',
-                    fontFamily: 'Inter',
-                    color: '#888888'
-                }).setOrigin(0.5);
-
-                this.add.text(centerX, centerY + 40, 'PENALTY: ' + currency + ' 2,000,000,000', {
+                this.add.text(centerX, centerY + 10, 'Your product is withdrawn from the ' + countryName + '\nmarket by authorities.', {
                     fontSize: '16px',
-                    fontFamily: 'JetBrains Mono',
+                    fontFamily: 'Geist',
+                    color: '#FFFFFF',
+                    align: 'center'
+                }).setOrigin(0.5);
+
+                this.add.text(centerX, centerY + 60, 'Penalty Fine: ' + currency + ' 2 000 000 000', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
-                    color: '#ef4444'
+                    color: '#FFD93D'
                 }).setOrigin(0.5);
 
-                this.add.text(centerX, centerY + 80, 'FINAL SCORE: ' + this.score, {
-                    fontSize: '14px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#f5f5f5'
-                }).setOrigin(0.5);
-
-                this.add.text(centerX, centerY + 120, 'PRESS SPACE TO RESTART', {
-                    fontSize: '12px',
-                    fontFamily: 'JetBrains Mono',
-                    color: '#666666'
+                this.add.text(centerX, centerY + 100, 'Press SPACE to try again', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#4E8DDD'
                 }).setOrigin(0.5);
 
                 this.input.keyboard.once('keydown-SPACE', () => {
@@ -1946,7 +1626,7 @@
             width: MAZE_WIDTH * TILE_SIZE,
             height: MAZE_HEIGHT * TILE_SIZE + 40,
             parent: 'game-container',
-            backgroundColor: '#0a0a0a',
+            backgroundColor: '#080810',
             physics: {
                 default: 'arcade',
                 arcade: {
