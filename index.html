@@ -152,6 +152,110 @@
                 }
             }
 
+            // Fanfare of Glory - triumphant brass fanfare
+            playFanfare() {
+                if (!this.initialized || this.muted) return;
+                this.stopJingle();
+                this.jinglePlaying = true;
+
+                const playLoop = () => {
+                    if (!this.jinglePlaying || this.muted) return;
+
+                    // Timpani drum hits
+                    const playTimpani = (time, accent = false) => {
+                        this.playTone(80, 0.15, 'triangle', accent ? 0.4 : 0.25, time);
+                        this.playTone(60, 0.2, 'sine', accent ? 0.3 : 0.2, time);
+                    };
+
+                    // Cymbal crash
+                    const playCymbal = (time) => {
+                        for (let i = 0; i < 8; i++) {
+                            this.playTone(4000 + Math.random() * 4000, 0.3, 'sawtooth', 0.03, time + i * 0.01);
+                        }
+                    };
+
+                    // Fanfare melody - triumphant brass in Bb major
+                    const melody = [
+                        // Opening call - "Rise up!"
+                        { freq: 466, dur: 0.15 },  // Bb4
+                        { freq: 466, dur: 0.15 },  // Bb4
+                        { freq: 466, dur: 0.15 },  // Bb4
+                        { freq: 587, dur: 0.5 },   // D5 (held)
+                        { freq: 0, dur: 0.1 },
+                        // Answer phrase - "The day is won!"
+                        { freq: 523, dur: 0.15 },  // C5
+                        { freq: 523, dur: 0.15 },  // C5
+                        { freq: 523, dur: 0.15 },  // C5
+                        { freq: 698, dur: 0.5 },   // F5 (held)
+                        { freq: 0, dur: 0.1 },
+                        // Rising triumph - "A new age has begun!"
+                        { freq: 587, dur: 0.2 },   // D5
+                        { freq: 659, dur: 0.2 },   // E5
+                        { freq: 698, dur: 0.2 },   // F5
+                        { freq: 784, dur: 0.2 },   // G5
+                        { freq: 880, dur: 0.6 },   // A5 (climax)
+                        { freq: 0, dur: 0.15 },
+                        // Descending resolution
+                        { freq: 784, dur: 0.15 },  // G5
+                        { freq: 698, dur: 0.15 },  // F5
+                        { freq: 587, dur: 0.15 },  // D5
+                        { freq: 466, dur: 0.5 },   // Bb4 (resolution)
+                        { freq: 0, dur: 0.2 },
+                        // Second verse - more elaborate
+                        { freq: 587, dur: 0.1 },   // D5
+                        { freq: 587, dur: 0.1 },   // D5
+                        { freq: 698, dur: 0.1 },   // F5
+                        { freq: 587, dur: 0.1 },   // D5
+                        { freq: 784, dur: 0.4 },   // G5
+                        { freq: 698, dur: 0.4 },   // F5
+                        { freq: 0, dur: 0.1 },
+                        // Grand finale
+                        { freq: 466, dur: 0.2 },   // Bb4
+                        { freq: 587, dur: 0.2 },   // D5
+                        { freq: 698, dur: 0.2 },   // F5
+                        { freq: 880, dur: 0.3 },   // A5
+                        { freq: 932, dur: 0.6 },   // Bb5 (high climax!)
+                        { freq: 0, dur: 0.6 },     // pause before loop
+                    ];
+
+                    let time = 0;
+                    let beat = 0;
+
+                    melody.forEach((note, i) => {
+                        if (note.freq > 0) {
+                            // Bright brass (sawtooth with harmonics)
+                            this.playTone(note.freq, note.dur * 0.9, 'sawtooth', 0.18, time);
+                            // Second trumpet harmony (third above on long notes)
+                            if (note.dur >= 0.3) {
+                                this.playTone(note.freq * 1.25, note.dur * 0.9, 'sawtooth', 0.1, time);
+                            }
+                            // French horn fifth below
+                            if (note.dur >= 0.2) {
+                                this.playTone(note.freq * 0.667, note.dur * 1.1, 'triangle', 0.15, time);
+                            }
+                            // Tuba bass on downbeats
+                            if (beat % 4 === 0) {
+                                this.playTone(note.freq * 0.25, note.dur * 1.3, 'triangle', 0.25, time);
+                            }
+                        }
+                        // Timpani on strong beats
+                        if (note.dur >= 0.3 && note.freq > 0) {
+                            playTimpani(time, beat % 4 === 0);
+                        }
+                        // Cymbal on climax notes
+                        if (note.freq >= 880) {
+                            playCymbal(time);
+                        }
+                        beat++;
+                        time += note.dur;
+                    });
+
+                    this.jingleTimeout = setTimeout(() => playLoop(), time * 1000);
+                };
+
+                playLoop();
+            }
+
             // Chomp sound - quick waka waka
             playChomp() {
                 if (!this.initialized || this.muted) return;
@@ -239,7 +343,7 @@
         const MAZE_WIDTH = 19;
         const MAZE_HEIGHT = 21;
         const PLAYER_SPEED = 150;
-        const ENEMY_SPEED = 100;
+        const ENEMY_SPEED = 130;
 
         // Maze layout: 0 = path, 1 = wall, 2 = dot position, 3 = enemy spawn, 4 = player spawn
         const MAZE = [
@@ -376,13 +480,13 @@
             }
 
             createPlaceholderAssets() {
-                // Blue-tinted colors
-                const standardColors = [0x4E8DDD, 0x5CA0FF, 0x3B6CBF, 0x77B3FF, 0xAAD4FF];
+                // Darker blue-tinted colors
+                const standardColors = [0x2A4D7A, 0x2D5080, 0x1E3660, 0x3B5980, 0x4A6090];
                 STANDARDS.forEach((standard, i) => {
                     const g = this.make.graphics({ x: 0, y: 0, add: false });
                     g.fillStyle(standardColors[i], 1);
                     g.fillRoundedRect(2, 2, 12, 12, 3);
-                    g.fillStyle(0xFFFFFF, 1);
+                    g.fillStyle(0x8899AA, 0.6);
                     g.fillRect(5, 6, 6, 2);
                     g.fillRect(5, 9, 4, 2);
                     g.generateTexture('standard_' + i, 16, 16);
@@ -477,7 +581,7 @@
                 const initSound = () => {
                     if (soundManager.initialized) return;
                     soundManager.init();
-                    soundManager.playJingle();
+                    soundManager.playFanfare();
                     // Remove all listeners once triggered
                     ['keydown', 'click', 'touchstart', 'mousedown', 'mousemove'].forEach(evt => {
                         document.removeEventListener(evt, initSound);
@@ -601,7 +705,7 @@
             create() {
                 // Start/continue the background music (loops automatically)
                 soundManager.init();
-                soundManager.playJingle();
+                soundManager.playFanfare();
 
                 // Create maze
                 this.createMaze();
@@ -629,6 +733,7 @@
 
                 // Collisions
                 this.physics.add.collider(this.player, this.walls);
+                this.physics.add.collider(this.enemies, this.walls);
                 this.physics.add.overlap(this.player, this.dots, this.collectDot, null, this);
                 this.physics.add.overlap(this.player, this.enemies, this.hitEnemy, null, this);
             }
@@ -750,6 +855,68 @@
                 this.activeUpdates++;
                 this.totalUpdatesAdded++;
                 this.updatesText.setText('Updates: ' + this.activeUpdates);
+
+                // Show alert if too many untaken updates
+                this.checkUpdateAlert();
+            }
+
+            checkUpdateAlert() {
+                if (this.activeUpdates > 5) {
+                    if (!this.updateAlert.visible) {
+                        // Start countdown
+                        this.updateCountdown = 10;
+                        this.updateAlertText();
+                        this.updateAlert.setVisible(true);
+
+                        // Start countdown timer
+                        if (this.countdownEvent) this.countdownEvent.remove();
+                        this.countdownEvent = this.time.addEvent({
+                            delay: 1000,
+                            callback: this.tickCountdown,
+                            callbackScope: this,
+                            repeat: 9
+                        });
+                    }
+                } else {
+                    // Stop countdown and hide alert
+                    if (this.countdownEvent) {
+                        this.countdownEvent.remove();
+                        this.countdownEvent = null;
+                    }
+                    this.updateAlert.setVisible(false);
+                    this.updateCountdown = 10;
+                }
+            }
+
+            updateAlertText() {
+                this.updateAlert.setText('Too many regulatory updates! ' + this.updateCountdown + 's');
+            }
+
+            tickCountdown() {
+                this.updateCountdown--;
+                if (this.updateCountdown <= 0) {
+                    // Time's up - lose a life
+                    this.lives--;
+                    this.livesText.setText('Products: ' + this.lives);
+                    this.cameras.main.flash(200, 255, 0, 0);
+                    soundManager.playHit();
+
+                    if (this.lives <= 0) {
+                        this.endGame();
+                    } else {
+                        // Reset countdown
+                        this.updateCountdown = 10;
+                        this.updateAlertText();
+                        this.countdownEvent = this.time.addEvent({
+                            delay: 1000,
+                            callback: this.tickCountdown,
+                            callbackScope: this,
+                            repeat: 9
+                        });
+                    }
+                } else {
+                    this.updateAlertText();
+                }
             }
 
             createPlayer() {
@@ -831,6 +998,19 @@
                     fontFamily: 'JetBrains Mono',
                     color: '#00FFFF'
                 }).setOrigin(0.5, 0);
+
+                // Update alert with countdown (hidden by default) - positioned near top of game
+                this.updateAlert = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
+                    fontSize: '14px',
+                    fontFamily: 'JetBrains Mono',
+                    fontStyle: 'bold',
+                    color: '#FFFFFF',
+                    backgroundColor: '#CC0000',
+                    padding: { x: 10, y: 6 }
+                }).setOrigin(0.5, 0.5).setDepth(100);
+                this.updateAlert.setVisible(false);
+                this.updateCountdown = 10;
+                this.countdownEvent = null;
             }
 
             update(time, delta) {
@@ -978,49 +1158,52 @@
             }
 
             moveEnemies() {
+                const speed = ENEMY_SPEED;
                 this.enemies.getChildren().forEach(enemy => {
-                    // Initialize last tile tracking
-                    if (enemy.lastTileX === undefined) {
-                        enemy.lastTileX = Math.floor(enemy.x / TILE_SIZE);
-                        enemy.lastTileY = Math.floor(enemy.y / TILE_SIZE);
+                    // Keep enemies in bounds
+                    const minX = TILE_SIZE / 2;
+                    const maxX = MAZE_WIDTH * TILE_SIZE - TILE_SIZE / 2;
+                    const minY = TILE_SIZE / 2;
+                    const maxY = MAZE_HEIGHT * TILE_SIZE - TILE_SIZE / 2;
+
+                    if (enemy.x < minX || enemy.x > maxX || enemy.y < minY || enemy.y > maxY) {
+                        // Reset to nearest valid tile center
+                        const tileX = Math.max(1, Math.min(MAZE_WIDTH - 2, Math.floor(enemy.x / TILE_SIZE)));
+                        const tileY = Math.max(1, Math.min(MAZE_HEIGHT - 2, Math.floor(enemy.y / TILE_SIZE)));
+                        enemy.x = tileX * TILE_SIZE + TILE_SIZE / 2;
+                        enemy.y = tileY * TILE_SIZE + TILE_SIZE / 2;
+                        this.changeEnemyDirection(enemy);
                     }
 
-                    // Get current tile before moving
-                    const oldTileX = Math.floor(enemy.x / TILE_SIZE);
-                    const oldTileY = Math.floor(enemy.y / TILE_SIZE);
+                    // Get current tile center
+                    const tileX = Math.floor(enemy.x / TILE_SIZE);
+                    const tileY = Math.floor(enemy.y / TILE_SIZE);
+                    const centerX = tileX * TILE_SIZE + TILE_SIZE / 2;
+                    const centerY = tileY * TILE_SIZE + TILE_SIZE / 2;
 
-                    // Move in current direction
-                    const speed = 0.6; // pixels per frame (slower than player)
-                    switch (enemy.direction) {
-                        case 'left': enemy.x -= speed; break;
-                        case 'right': enemy.x += speed; break;
-                        case 'up': enemy.y -= speed; break;
-                        case 'down': enemy.y += speed; break;
-                    }
+                    // Check if near tile center (within 3 pixels)
+                    const nearCenter = Math.abs(enemy.x - centerX) < 4 && Math.abs(enemy.y - centerY) < 4;
 
-                    // Get new tile after moving
-                    const newTileX = Math.floor(enemy.x / TILE_SIZE);
-                    const newTileY = Math.floor(enemy.y / TILE_SIZE);
-
-                    // Check if we entered a new tile
-                    if (newTileX !== oldTileX || newTileY !== oldTileY) {
-                        // We crossed into a new tile - snap to its center and decide direction
-                        enemy.x = newTileX * TILE_SIZE + TILE_SIZE / 2;
-                        enemy.y = newTileY * TILE_SIZE + TILE_SIZE / 2;
-
-                        // Check if current direction is still valid, if not pick new one
+                    if (nearCenter) {
+                        // Check if we need to change direction
                         if (!this.canMove(enemy, enemy.direction)) {
                             this.changeEnemyDirection(enemy);
                         } else {
                             // At intersection, maybe change direction
                             const validDirs = ['left', 'right', 'up', 'down'].filter(d => this.canMove(enemy, d));
-                            if (validDirs.length > 2 && Math.random() < 0.3) {
+                            if (validDirs.length > 2 && Math.random() < 0.01) {
                                 this.changeEnemyDirection(enemy);
                             }
                         }
+                    }
 
-                        enemy.lastTileX = newTileX;
-                        enemy.lastTileY = newTileY;
+                    // Set velocity based on direction
+                    switch (enemy.direction) {
+                        case 'left': enemy.setVelocity(-speed, 0); break;
+                        case 'right': enemy.setVelocity(speed, 0); break;
+                        case 'up': enemy.setVelocity(0, -speed); break;
+                        case 'down': enemy.setVelocity(0, speed); break;
+                        default: enemy.setVelocity(0, 0);
                     }
                 });
             }
@@ -1068,7 +1251,7 @@
                 // Check if it's an update dot (gives more points)
                 const isUpdate = dot.isUpdate;
                 const points = isUpdate ? 50 : 10;
-                const textColor = isUpdate ? '#00FFFF' : '#77B3FF';
+                const textColor = '#FFFFFF';
 
                 // Play appropriate sound effect
                 if (isUpdate) {
@@ -1076,6 +1259,7 @@
                     // Decrement updates counter
                     this.activeUpdates--;
                     this.updatesText.setText('Updates: ' + this.activeUpdates);
+                    this.checkUpdateAlert();
                 } else {
                     soundManager.playChomp();
                 }
@@ -1097,8 +1281,9 @@
 
                 // Show collected standard name
                 const nameText = this.add.text(dotX, dotY - 20, standardName + (isUpdate ? ' +50' : ''), {
-                    fontSize: '12px',
+                    fontSize: '14px',
                     fontFamily: 'JetBrains Mono',
+                    fontStyle: 'bold',
                     color: textColor
                 }).setOrigin(0.5);
 
