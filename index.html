@@ -1175,13 +1175,27 @@
                         this.changeEnemyDirection(enemy);
                     }
 
+                    // Check if enemy is stuck (velocity blocked by wall)
+                    const isStuck = enemy.body &&
+                        Math.abs(enemy.body.velocity.x) < 5 &&
+                        Math.abs(enemy.body.velocity.y) < 5;
+
+                    if (isStuck) {
+                        // Snap to nearest tile center and change direction
+                        const tileX = Math.round((enemy.x - TILE_SIZE / 2) / TILE_SIZE);
+                        const tileY = Math.round((enemy.y - TILE_SIZE / 2) / TILE_SIZE);
+                        enemy.x = tileX * TILE_SIZE + TILE_SIZE / 2;
+                        enemy.y = tileY * TILE_SIZE + TILE_SIZE / 2;
+                        this.changeEnemyDirection(enemy);
+                    }
+
                     // Get current tile center
                     const tileX = Math.floor(enemy.x / TILE_SIZE);
                     const tileY = Math.floor(enemy.y / TILE_SIZE);
                     const centerX = tileX * TILE_SIZE + TILE_SIZE / 2;
                     const centerY = tileY * TILE_SIZE + TILE_SIZE / 2;
 
-                    // Check if near tile center (within 3 pixels)
+                    // Check if near tile center (within 4 pixels)
                     const nearCenter = Math.abs(enemy.x - centerX) < 4 && Math.abs(enemy.y - centerY) < 4;
 
                     if (nearCenter) {
