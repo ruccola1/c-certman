@@ -2108,7 +2108,7 @@
                 // Penalty scales based on uncollected items: 0 if all collected, 2M if none collected
                 const uncollectedRatio = this.totalDots > 0 ? (this.totalDots - this.collectedDots) / this.totalDots : 1;
                 const targetPenalty = Math.round(2000000 * uncollectedRatio);
-                const penaltyText = this.add.text(centerX, centerY + 50, 'PENALTY: ' + currency + ' 0', {
+                const penaltyText = this.add.text(centerX, centerY + 50, 'PENALTY: ' + currency + '0', {
                     fontSize: '20px',
                     fontFamily: 'Geist Mono',
                     fontStyle: 'bold',
@@ -2123,8 +2123,8 @@
                     delay: 600,
                     ease: 'Cubic.easeOut',
                     onUpdate: () => {
-                        const formatted = Math.floor(penaltyAmount.value).toLocaleString();
-                        penaltyText.setText('PENALTY: ' + currency + ' ' + formatted);
+                        const formatted = Math.floor(penaltyAmount.value).toLocaleString('en-US');
+                        penaltyText.setText('PENALTY: ' + currency + formatted);
                     }
                 });
 
