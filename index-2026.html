@@ -40,9 +40,16 @@
             font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
             background: linear-gradient(180deg, #10151F 0%, #141414 100%);
             min-height: 100vh;
+            overscroll-behavior: none;
         }
         #game-container {
             border: 1px solid rgba(255, 255, 255, 0.08);
+            width: 100%;
+            aspect-ratio: 19 / 22;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
         }
         #game-container canvas {
             display: block;
@@ -59,54 +66,54 @@
 <body class="text-white min-h-screen flex flex-col antialiased">
     <span class="font-preload">Nabla</span>
     <!-- Header -->
-    <header class="px-10 py-5 flex items-center justify-between border-b border-white/10">
+    <header class="px-4 sm:px-10 py-4 sm:py-5 flex items-center justify-between border-b border-white/10">
         <div class="flex items-center gap-4">
             <svg class="h-7 w-auto" viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FFFFFF" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>
             <div class="flex items-baseline gap-4">
-                <span class="text-[17px]" style="font-family: 'Nabla', 'Geist', sans-serif">COMPLIANCE-MAN</span>
-                <span class="w-3 h-px bg-white/20 self-center"></span>
-                <span class="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-steel-light">Comply or pay</span>
+                <span class="text-[13px] sm:text-[17px] whitespace-nowrap" style="font-family: 'Nabla', 'Geist', sans-serif">COMPLIANCE-MAN</span>
+                <span class="hidden sm:block w-3 h-px bg-white/20 self-center"></span>
+                <span class="hidden sm:inline font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-steel-light">Comply or pay</span>
             </div>
         </div>
-        <div class="flex items-center gap-10">
+        <div class="flex items-center gap-5 sm:gap-10">
             <button id="mute-btn" class="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/40 hover:text-white transition-colors">Sound off</button>
             <span class="font-mono text-[10px] tracking-[0.2em] text-white/35">certean.com</span>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col items-center justify-center py-12">
-        <div class="w-[608px]">
+    <main class="flex-1 flex flex-col items-center justify-center py-6 sm:py-12">
+        <div class="w-full max-w-[640px] px-4">
             <!-- Game Container -->
             <div id="game-container"></div>
 
             <!-- Stat row -->
             <div class="grid grid-cols-5 border-b border-white/10">
-                <div class="py-4 pr-5 border-r border-white/10">
-                    <div class="font-mono text-[9px] font-semibold tracking-[0.2em] uppercase text-steel-light mb-1.5">Score</div>
-                    <div id="score-stat" class="text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0</div>
+                <div class="py-3 sm:py-4 pr-2 sm:pr-5 border-r border-white/10">
+                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Score</div>
+                    <div id="score-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0</div>
                 </div>
-                <div class="py-4 px-5 border-r border-white/10">
-                    <div class="font-mono text-[9px] font-semibold tracking-[0.2em] uppercase text-steel-light mb-1.5">Compliance</div>
-                    <div id="compliance-stat" class="text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0%</div>
+                <div class="py-3 sm:py-4 px-2 sm:px-5 border-r border-white/10">
+                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Compliance</div>
+                    <div id="compliance-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0%</div>
                 </div>
-                <div class="py-4 px-5 border-r border-white/10">
-                    <div class="font-mono text-[9px] font-semibold tracking-[0.2em] uppercase text-steel-light mb-1.5">Collected</div>
-                    <div id="progress-stat" class="text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0</div>
+                <div class="py-3 sm:py-4 px-2 sm:px-5 border-r border-white/10">
+                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Collected</div>
+                    <div id="progress-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0</div>
                 </div>
-                <div class="py-4 px-5 border-r border-white/10">
-                    <div class="font-mono text-[9px] font-semibold tracking-[0.2em] uppercase text-steel-light mb-1.5">Products</div>
-                    <div id="products-stat" class="text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">3</div>
+                <div class="py-3 sm:py-4 px-2 sm:px-5 border-r border-white/10">
+                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Products</div>
+                    <div id="products-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">3</div>
                 </div>
-                <div class="py-4 pl-5">
-                    <div class="font-mono text-[9px] font-semibold tracking-[0.2em] uppercase text-steel-light mb-1.5">Updates</div>
-                    <div id="updates-stat" class="text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0 / 5</div>
+                <div class="py-3 sm:py-4 pl-2 sm:pl-5">
+                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Updates</div>
+                    <div id="updates-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0 / 5</div>
                 </div>
             </div>
 
             <!-- Legend -->
             <div class="flex items-center pt-4">
-                <div class="flex items-center gap-6">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-6">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 bg-[#8FA5CC]"></span>
                         <span class="text-xs text-white/55">Elements</span>
@@ -137,9 +144,9 @@
     </main>
 
     <!-- Footer -->
-    <footer class="px-10 py-4 flex items-center justify-between border-t border-white/10 font-mono text-[10px] text-white/35 tracking-[0.15em]">
+    <footer class="px-4 sm:px-10 py-4 flex items-center justify-between border-t border-white/10 font-mono text-[10px] text-white/35 tracking-[0.15em]">
         <span>© 2026 Certean</span>
-        <span>WASD / ARROWS TO MOVE · SPACE TO START</span>
+        <span class="hidden sm:inline">WASD / ARROWS TO MOVE · SPACE TO START</span><span class="sm:hidden">SWIPE TO MOVE · TAP TO START</span>
     </footer>
 
     <script>
@@ -583,6 +590,19 @@
         const MAZE_WIDTH = MAZE[0].length;
         const MAZE_HEIGHT = MAZE.length;
 
+        // Thumb steering: how far (in game px) the thumb has to travel from its
+        // anchor before a direction is read. Small enough to feel instant on a
+        // phone where the 608px board is scaled down to ~360px.
+        const TOUCH_DEADZONE = 18;
+
+        // Touch-first device? Drives which control tutorial is shown.
+        const isTouchDevice = () => {
+            try {
+                if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+            } catch (e) { /* ignore */ }
+            return (navigator.maxTouchPoints || 0) > 0 && !(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+        };
+
         // Collectibles categorized by type
         const COLLECTIBLES = {
             standards: [
@@ -945,10 +965,13 @@
                     delay: 600
                 });
 
-                // Controls
-                const controls = this.add.text(centerX, centerY + 90, 'WASD or arrows to move', {
-                    fontSize: '12px',
+                // Controls: a label plus a looping animated demo of how to steer
+                const touchDevice = isTouchDevice();
+                const controls = this.add.text(centerX, centerY + 80,
+                    touchDevice ? 'SLIDE YOUR THUMB ANYWHERE TO STEER' : 'WASD OR ARROW KEYS TO STEER', {
+                    fontSize: '11px',
                     fontFamily: 'Geist Mono',
+                    fontStyle: '600',
                     color: '#7A8291'
                 }).setOrigin(0.5).setAlpha(0);
 
@@ -959,8 +982,17 @@
                     delay: 700
                 });
 
+                const demo = this.createControlsDemo(centerX, centerY + 142, touchDevice);
+                demo.setAlpha(0);
+                this.tweens.add({
+                    targets: demo,
+                    alpha: 1,
+                    duration: 400,
+                    delay: 800
+                });
+
                 // Start prompt with pulse
-                const startButton = this.add.text(centerX, centerY + 145, 'Press space to start', {
+                const startButton = this.add.text(centerX, centerY + 218, touchDevice ? 'Tap to start' : 'Press space to start', {
                     fontSize: '15px',
                     fontFamily: 'Geist Mono',
                     fontStyle: '600',
@@ -984,13 +1016,138 @@
                 });
 
                 // Start game on space or click
+                let started = false;
                 const startGame = () => {
+                    if (started) return;
+                    started = true;
                     soundManager.init();
                     soundManager.playStartGame();
                     this.scene.start('GameScene');
                 };
                 this.input.keyboard.once('keydown-SPACE', startGame);
                 startButton.once('pointerdown', startGame);
+                this.input.once('pointerdown', startGame);
+            }
+
+            // Animated how-to-play strip: on the left the player mirrors each
+            // move, on the right either a thumb slides across a pad (touch) or
+            // the arrow keys light up (keyboard). Loops until the game starts.
+            createControlsDemo(x, y, touch) {
+                const c = this.add.container(x, y);
+                const DIRS = {
+                    up:    { dx: 0,  dy: -1, angle: -90 },
+                    right: { dx: 1,  dy: 0,  angle: 0 },
+                    down:  { dx: 0,  dy: 1,  angle: 90 },
+                    left:  { dx: -1, dy: 0,  angle: 180 }
+                };
+                const ORDER = ['right', 'down', 'left', 'up'];
+
+                // Left: the player
+                const PX = -112;
+                const pad = this.add.rectangle(PX, 0, 76, 76, 0x1A2130, 0.6).setStrokeStyle(1, 0x6B80A0, 0.25);
+                const player = this.add.image(PX, 0, 'player_1').setDisplaySize(30, 30);
+                c.add([pad, player]);
+
+                // Faint guide arrows around the player
+                [['up', 0, -28], ['right', 28, 0], ['down', 0, 28], ['left', -28, 0]].forEach(([k, ax, ay]) => {
+                    const tri = this.add.triangle(PX + ax, ay, 0, 0, 8, 4, 0, 8, 0x6B80A0, 0.35).setAngle(DIRS[k].angle);
+                    c.add(tri);
+                });
+
+                // Right: the input
+                const IX = 36;
+                const zone = this.add.rectangle(IX, 0, 170, 90, 0x1A2130, 0.6).setStrokeStyle(1, 0x6B80A0, 0.25);
+                c.add(zone);
+
+                let playInput;
+                if (touch) {
+                    const DIST = 38;
+                    const ring = this.add.circle(IX, 0, 17).setStrokeStyle(1.5, 0xFFFFFF, 0.4).setAlpha(0);
+                    const trail = this.add.rectangle(IX, 0, DIST, 3, 0xFFC53D, 0.6).setOrigin(0, 0.5).setAlpha(0);
+                    const thumb = this.add.circle(IX, 0, 13, 0xFFFFFF, 0.9).setAlpha(0);
+                    const hint = this.add.text(IX, 32, 'slide', {
+                        fontSize: '9px', fontFamily: 'Geist Mono', color: '#6B80A0'
+                    }).setOrigin(0.5);
+                    c.add([ring, trail, thumb, hint]);
+
+                    playInput = (d, onDone) => {
+                        ring.setPosition(IX, 0).setAlpha(0).setScale(0.6);
+                        thumb.setPosition(IX, 0).setAlpha(0).setScale(0.8);
+                        trail.setPosition(IX, 0).setAngle(d.angle).setScale(0, 1).setAlpha(0);
+                        // Touch down
+                        this.tweens.add({
+                            targets: [ring, thumb], alpha: 1, scale: 1, duration: 180, ease: 'Cubic.easeOut',
+                            onComplete: () => {
+                                if (!c.scene) return;
+                                trail.setAlpha(1);
+                                // Slide the thumb, leaving a trail from the anchor
+                                this.tweens.add({ targets: thumb, x: IX + d.dx * DIST, y: d.dy * DIST, duration: 320, ease: 'Cubic.easeInOut' });
+                                this.tweens.add({
+                                    targets: trail, scaleX: 1, duration: 320, ease: 'Cubic.easeInOut',
+                                    onComplete: () => {
+                                        if (!c.scene) return;
+                                        // Lift
+                                        this.tweens.add({ targets: [ring, thumb, trail], alpha: 0, duration: 260, delay: 220, onComplete: onDone });
+                                    }
+                                });
+                            }
+                        });
+                    };
+                } else {
+                    const K = 24, G = 5;
+                    const layout = {
+                        up:    [IX, -(K + G) / 2],
+                        left:  [IX - (K + G), (K + G) / 2],
+                        down:  [IX, (K + G) / 2],
+                        right: [IX + (K + G), (K + G) / 2]
+                    };
+                    const glyph = { up: '\u2191', down: '\u2193', left: '\u2190', right: '\u2192' };
+                    const keys = {};
+                    Object.keys(layout).forEach(k => {
+                        const [kx, ky] = layout[k];
+                        const cap = this.add.rectangle(kx, ky, K, K, 0x232B3A, 1).setStrokeStyle(1, 0x6B80A0, 0.4);
+                        const glow = this.add.rectangle(kx, ky, K, K, 0xFFC53D, 1).setAlpha(0);
+                        const label = this.add.text(kx, ky, glyph[k], {
+                            fontSize: '13px', fontFamily: 'Geist Mono', color: '#98A0AE'
+                        }).setOrigin(0.5);
+                        c.add([cap, glow, label]);
+                        keys[k] = { cap, glow, label };
+                    });
+
+                    playInput = (d, onDone) => {
+                        const k = keys[d.key];
+                        this.tweens.add({ targets: [k.cap, k.glow, k.label], scale: 0.88, duration: 120, yoyo: true, hold: 420 });
+                        this.tweens.add({
+                            targets: k.glow, alpha: 1, duration: 120, yoyo: true, hold: 420,
+                            onStart: () => k.label.setColor('#0F141D'),
+                            onComplete: () => { k.label.setColor('#98A0AE'); onDone(); }
+                        });
+                    };
+                }
+
+                // Sequencer: input on the right, player answers on the left
+                let i = 0;
+                const step = () => {
+                    if (!c.scene) return;
+                    const key = ORDER[i++ % ORDER.length];
+                    const d = Object.assign({ key }, DIRS[key]);
+
+                    player.setAngle(d.angle).setFlipY(key === 'left');
+                    this.tweens.add({
+                        targets: player, x: PX + d.dx * 11, y: d.dy * 11,
+                        duration: 320, delay: 180, yoyo: true, ease: 'Cubic.easeInOut'
+                    });
+                    let f = 0;
+                    this.time.addEvent({
+                        delay: 80, repeat: 6, startAt: 0,
+                        callback: () => { if (c.scene) player.setTexture((++f % 2) ? 'player_2' : 'player_1'); }
+                    });
+
+                    playInput(d, () => { if (c.scene) this.time.delayedCall(260, step); });
+                };
+                this.time.delayedCall(900, step);
+
+                return c;
             }
         }
 
@@ -1010,6 +1167,10 @@
                 this.invulnerable = false;
                 this.currentDirection = null;
                 this.inputDirection = null;
+                this.touchHeld = null;         // direction while the thumb is down
+                this.queuedDirection = null;   // last key press or swipe, consumed by the next turn
+                this.swipeOrigin = null;
+                this.touchPointerId = null;
                 this.validSpawnPositions = [];
                 this.updateDots = [];
                 this.activeUpdates = 0; // Counter for active update dots
@@ -1053,6 +1214,42 @@
                 // Setup input
                 this.input.keyboard.addCapture('SPACE');
                 this.cursors = this.input.keyboard.createCursorKeys();
+
+                // Touch: a floating thumb-stick. Put a thumb down anywhere on
+                // the board and slide: the dominant axis of the drag is the
+                // direction. The anchor re-centres after every read, so a
+                // change of direction mid-slide registers immediately.
+                this.touchStick = this.createTouchStick();
+                this.input.on('pointerdown', p => {
+                    if (this.gameOver) return;
+                    if (this.swipeOrigin && p.id !== this.touchPointerId) return; // ignore a second finger
+                    this.touchPointerId = p.id;
+                    this.swipeOrigin = { x: p.x, y: p.y };
+                    if (p.wasTouch) this.touchStick.show(p.x, p.y);
+                });
+                this.input.on('pointermove', p => {
+                    if (!p.isDown || !this.swipeOrigin || p.id !== this.touchPointerId) return;
+                    this.touchStick.follow(p.x, p.y);
+                    const dx = p.x - this.swipeOrigin.x;
+                    const dy = p.y - this.swipeOrigin.y;
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) < TOUCH_DEADZONE) return;
+                    const dir = Math.abs(dx) > Math.abs(dy)
+                        ? (dx > 0 ? 'right' : 'left')
+                        : (dy > 0 ? 'down' : 'up');
+                    this.touchHeld = dir;
+                    this.queuedDirection = dir;
+                    this.swipeOrigin = { x: p.x, y: p.y };
+                    this.touchStick.anchor(p.x, p.y);
+                });
+                const release = p => {
+                    if (p.id !== this.touchPointerId) return;
+                    this.swipeOrigin = null;
+                    this.touchPointerId = null;
+                    this.touchHeld = null; // the last swipe stays queued until used
+                    this.touchStick.hide();
+                };
+                this.input.on('pointerup', release);
+                this.input.on('pointerupoutside', release);
                 this.wasd = this.input.keyboard.addKeys({
                     up: Phaser.Input.Keyboard.KeyCodes.W,
                     down: Phaser.Input.Keyboard.KeyCodes.S,
@@ -1060,11 +1257,41 @@
                     right: Phaser.Input.Keyboard.KeyCodes.D
                 });
 
+                // Remember every key press as an event, not by polling, so even
+                // a tap shorter than one frame is queued for the next turn
+                const KEY_DIRECTIONS = {
+                    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+                    KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right'
+                };
+                this.input.keyboard.on('keydown', event => {
+                    const dir = KEY_DIRECTIONS[event.code];
+                    if (dir && !this.gameOver) this.queuedDirection = dir;
+                });
+
                 // Collisions
                 this.physics.add.collider(this.player, this.walls);
                 this.physics.add.collider(this.enemies, this.walls);
                 this.physics.add.overlap(this.player, this.dots, this.collectDot, null, this);
                 this.physics.add.overlap(this.player, this.enemies, this.hitEnemy, null, this);
+            }
+
+            // Subtle on-board indicator for thumb steering: a ring at the
+            // anchor and a dot under the finger. Only shown for touch input.
+            createTouchStick() {
+                const ring = this.add.circle(0, 0, 22).setStrokeStyle(1.5, 0xFFFFFF, 0.35).setDepth(30).setVisible(false);
+                const dot = this.add.circle(0, 0, 9, 0xFFFFFF, 0.45).setDepth(30).setVisible(false);
+                return {
+                    show: (x, y) => {
+                        ring.setPosition(x, y).setStrokeStyle(1.5, 0xFFFFFF, 0.35).setVisible(true);
+                        dot.setPosition(x, y).setVisible(true);
+                    },
+                    follow: (x, y) => dot.setPosition(x, y),
+                    anchor: (x, y) => {
+                        if (!ring.visible) return;
+                        ring.setPosition(x, y).setStrokeStyle(1.5, 0xFFC53D, 0.6);
+                    },
+                    hide: () => { ring.setVisible(false); dot.setVisible(false); }
+                };
             }
 
             createMaze() {
@@ -1483,18 +1710,17 @@
             }
 
             handleInput() {
-                // Capture current key state - only set if key is down
-                if (this.cursors.left.isDown || this.wasd.left.isDown) {
-                    this.inputDirection = 'left';
-                } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
-                    this.inputDirection = 'right';
-                } else if (this.cursors.up.isDown || this.wasd.up.isDown) {
-                    this.inputDirection = 'up';
-                } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
-                    this.inputDirection = 'down';
-                } else {
-                    this.inputDirection = null;
-                }
+                // A held key wins, then a held thumb. Every key press or swipe
+                // is also remembered until the turn happens, so a quick tap of
+                // "up" before a junction still turns the player there.
+                let key = null;
+                if (this.cursors.left.isDown || this.wasd.left.isDown) key = 'left';
+                else if (this.cursors.right.isDown || this.wasd.right.isDown) key = 'right';
+                else if (this.cursors.up.isDown || this.wasd.up.isDown) key = 'up';
+                else if (this.cursors.down.isDown || this.wasd.down.isDown) key = 'down';
+
+                if (key) this.queuedDirection = key;
+                this.inputDirection = key || this.touchHeld || this.queuedDirection;
             }
 
             movePlayer() {
@@ -1513,14 +1739,22 @@
                 const nearCenterX = distX < threshold;
                 const nearCenterY = distY < threshold;
 
-                // Try to change direction when near center
-                if (nearCenterX && nearCenterY && this.inputDirection) {
+                // Try to change direction when near center. Only when the
+                // request differs from the current heading: otherwise holding a
+                // key (or thumb) in the direction of travel would re-snap the
+                // player to the tile centre every frame and freeze it in place.
+                if (nearCenterX && nearCenterY && this.inputDirection && this.inputDirection !== this.currentDirection) {
                     if (this.canMoveInDirection(tileX, tileY, this.inputDirection)) {
                         // Snap to center when changing direction
                         this.player.x = tileCenterX;
                         this.player.y = tileCenterY;
                         this.currentDirection = this.inputDirection;
                     }
+                }
+
+                // One press or swipe = one turn: drop it once we are heading that way
+                if (this.queuedDirection && this.queuedDirection === this.currentDirection) {
+                    this.queuedDirection = null;
                 }
 
                 // Check if current direction is still valid
@@ -1914,6 +2148,9 @@
                         this.player.setTexture('player_0');
                         this.currentDirection = null;
                         this.inputDirection = null;
+                        this.touchHeld = null;
+                        this.queuedDirection = null;
+                        this.touchStick.hide();
                         this.chompStep = 0;
                         this.playerRotation = 0;
 
@@ -2002,15 +2239,23 @@
                     color: '#6B80A0'
                 }).setOrigin(0.5).setDepth(21);
 
-                const restartBtn = this.add.text(centerX, centerY + 140, 'Press space to play again', {
+                const restartBtn = this.add.text(centerX, centerY + 140, isTouchDevice() ? 'Tap to play again' : 'Press space to play again', {
                     fontSize: '13px',
                     fontFamily: 'Geist Mono',
                     color: '#7A8291'
                 }).setOrigin(0.5).setDepth(21).setInteractive({ useHandCursor: true });
 
-                const restart = () => this.scene.restart();
+                let restarted = false;
+                const restart = () => {
+                    if (restarted) return;
+                    restarted = true;
+                    this.scene.restart();
+                };
                 this.input.keyboard.once('keydown-SPACE', restart);
                 restartBtn.once('pointerdown', restart);
+                this.time.delayedCall(800, () => {
+                    this.input.once('pointerdown', restart);
+                });
             }
 
             loseGame(enemy) {
@@ -2155,7 +2400,7 @@
                     color: '#98A0AE'
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
-                const restartText = this.add.text(centerX, centerY + 160, 'Press space to try again', {
+                const restartText = this.add.text(centerX, centerY + 160, isTouchDevice() ? 'Tap to try again' : 'Press space to try again', {
                     fontSize: '13px',
                     fontFamily: 'Geist Mono',
                     color: '#7A8291'
@@ -2193,19 +2438,31 @@
                     delay: 1000
                 });
 
-                const restart = () => this.scene.restart();
+                let restarted = false;
+                const restart = () => {
+                    if (restarted) return;
+                    restarted = true;
+                    this.scene.restart();
+                };
                 this.input.keyboard.once('keydown-SPACE', restart);
                 restartText.once('pointerdown', restart);
+                this.time.delayedCall(800, () => {
+                    this.input.once('pointerdown', restart);
+                });
             }
         }
 
         // Game configuration
         const config = {
             type: Phaser.AUTO,
-            width: MAZE_WIDTH * TILE_SIZE,
-            height: MAZE_HEIGHT * TILE_SIZE,
             parent: 'game-container',
             backgroundColor: '#0F141D',
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH,
+                width: MAZE_WIDTH * TILE_SIZE,
+                height: MAZE_HEIGHT * TILE_SIZE
+            },
             physics: {
                 default: 'arcade',
                 arcade: {
