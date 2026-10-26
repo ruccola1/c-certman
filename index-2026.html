@@ -686,6 +686,20 @@
             if (text.setLetterSpacing) text.setLetterSpacing(amount);
             return text;
         };
+        // Arcade blink for a call to action: swap the fill between gold and
+        // white at full opacity, so the dark label on it stays legible
+        const blinkButton = (scene, box) => {
+            let lit = true;
+            return scene.time.addEvent({
+                delay: 520,
+                loop: true,
+                callback: () => {
+                    lit = !lit;
+                    box.setFillStyle(lit ? T.accent : 0xFFFFFF);
+                }
+            });
+        };
+
         // The lined background, as a tiling sprite behind everything
         const addStripes = (scene, depth, alpha) => {
             const sprite = scene.add.tileSprite(
@@ -1190,17 +1204,7 @@
                     alpha: 1,
                     duration: 400,
                     delay: 900,
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: startButton,
-                            alpha: 0.2,
-                            duration: 520,
-                            yoyo: true,
-                            repeat: -1,
-                            ease: 'Stepped',
-                            easeParams: [1]
-                        });
-                    }
+                    onComplete: () => blinkButton(this, startBox)
                 });
 
                 // Start game on space or click
@@ -2455,16 +2459,7 @@
                     label(10, '#141414')).setOrigin(0.5).setDepth(22), 2);
                 const restartBtn = this.add.rectangle(centerX, centerY + 148,
                     restartLabel.width + 40, 40, T.accent).setDepth(21).setInteractive({ useHandCursor: true });
-                this.tweens.add({
-                    targets: [restartBtn, restartLabel],
-                    alpha: 0.25,
-                    duration: 520,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Stepped',
-                    easeParams: [1],
-                    delay: 600
-                });
+                this.time.delayedCall(600, () => blinkButton(this, restartBtn));
 
                 let restarted = false;
                 const restart = () => {
@@ -2649,17 +2644,7 @@
                     alpha: 1,
                     duration: 300,
                     delay: 1000,
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: [restartText, restartLabel],
-                            alpha: 0.25,
-                            duration: 520,
-                            yoyo: true,
-                            repeat: -1,
-                            ease: 'Stepped',
-                            easeParams: [1]
-                        });
-                    }
+                    onComplete: () => blinkButton(this, restartText)
                 });
 
                 let restarted = false;
