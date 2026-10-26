@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300..600&family=Geist+Mono:wght@400..600&family=Nabla&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@300..700&family=Nabla&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script>
         tailwind.config = {
@@ -16,10 +16,12 @@
                 extend: {
                     colors: {
                         carbon: "#141414",
-                        heading: "#1E3D6E",
-                        steel: "#526080",
-                        "steel-light": "#6B80A0",
+                        ink: "#10151F",
+                        steel: "#6B80A0",
+                        "steel-light": "#8FA5CC",
                         "steel-dark": "#3D4F6B",
+                        accent: "#FFC53D",
+                        "accent-dim": "#E0A818",
                         "off-white": "#FAFAFA",
                     },
                     fontFamily: {
@@ -36,14 +38,94 @@
             padding: 0;
             box-sizing: border-box;
         }
+        :root {
+            --ink: #10151F;
+            --line: rgba(255, 255, 255, 0.11);
+            --accent: #FFC53D;
+        }
         body {
             font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
             background: linear-gradient(180deg, #10151F 0%, #141414 100%);
             min-height: 100vh;
             overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
         }
+        /* The lined gradient: fine diagonal rules that fade down the page */
+        .stripe-field {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image: repeating-linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.055) 0px,
+                rgba(255, 255, 255, 0.055) 1px,
+                transparent 1px,
+                transparent 7px
+            );
+            -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.75) 100%);
+            mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.75) 100%);
+        }
+        /* Display type: the arcade face, on the brand's black-and-blue ground */
+        .display {
+            font-family: 'Nabla', 'Geist', sans-serif;
+            font-weight: 400;
+        }
+        /* Stat numerals carry the same arcade face */
+        .figure {
+            font-family: 'Nabla', 'Geist', sans-serif;
+            font-weight: 400;
+        }
+        /* Force the display font to load before the canvas draws with it */
+        .font-preload {
+            font-family: 'Nabla', system-ui;
+            position: absolute;
+            left: -9999px;
+            visibility: hidden;
+        }
+        /* A stat that just changed gets a quick arcade pop */
+        @keyframes statFlash {
+            0%   { filter: brightness(2.4); transform: translateY(-2px) scale(1.06); }
+            60%  { filter: brightness(1.4); }
+            100% { filter: none; transform: none; }
+        }
+        .flash { animation: statFlash 0.3s ease-out; }
+        /* Anything urgent blinks like a warning lamp */
+        @keyframes blink {
+            0%, 49%   { opacity: 1; }
+            50%, 100% { opacity: 0.25; }
+        }
+        .blink { animation: blink 0.55s steps(1, end) infinite; }
+        .label {
+            font-family: 'Geist Mono', ui-monospace, monospace;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+        .cta {
+            background: var(--accent);
+            color: #141414;
+            transition: background-color .15s ease;
+        }
+        .cta:hover { background: #E0A818; }
+        /* Board frame with technical corner ticks */
+        .board {
+            position: relative;
+            border: 1px solid var(--line);
+        }
+        .board::before,
+        .board::after {
+            content: "";
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border: 1px solid var(--accent);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .board::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .board::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
         #game-container {
-            border: 1px solid rgba(255, 255, 255, 0.08);
             width: 100%;
             aspect-ratio: 19 / 22;
             touch-action: none;
@@ -54,99 +136,100 @@
         #game-container canvas {
             display: block;
         }
-        /* Force the display font to load before the canvas draws with it */
-        .font-preload {
-            font-family: 'Nabla', system-ui;
-            position: absolute;
-            left: -9999px;
-            visibility: hidden;
-        }
     </style>
 </head>
 <body class="text-white min-h-screen flex flex-col antialiased">
     <span class="font-preload">Nabla</span>
+    <div class="stripe-field"></div>
+
     <!-- Header -->
-    <header class="px-4 sm:px-10 py-4 sm:py-5 flex items-center justify-between border-b border-white/10">
-        <div class="flex items-center gap-4">
+    <header class="relative z-10 px-4 sm:px-10 h-16 sm:h-[72px] flex items-center justify-between border-b border-white/10">
+        <div class="flex items-center gap-3 sm:gap-5">
             <svg class="h-7 w-auto" viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FFFFFF" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>
-            <div class="flex items-baseline gap-4">
-                <span class="text-[13px] sm:text-[17px] whitespace-nowrap" style="font-family: 'Nabla', 'Geist', sans-serif">COMPLIANCE-MAN</span>
-                <span class="hidden sm:block w-3 h-px bg-white/20 self-center"></span>
-                <span class="hidden sm:inline font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-steel-light">Comply or pay</span>
-            </div>
+            <span class="display text-[13px] sm:text-[17px] leading-none whitespace-nowrap">COMPLIANCE-MAN</span>
+            <span class="hidden md:block w-5 h-px bg-white/20"></span>
+            <span class="hidden md:inline label text-[10px] text-steel">Comply or pay</span>
         </div>
-        <div class="flex items-center gap-5 sm:gap-10">
-            <button id="mute-btn" class="font-mono text-[10px] font-semibold tracking-[0.2em] uppercase text-white/40 hover:text-white transition-colors">Sound off</button>
-            <span class="font-mono text-[10px] tracking-[0.2em] text-white/35">certean.com</span>
+        <div class="flex items-center gap-3 sm:gap-6">
+            <button id="mute-btn" class="label text-[10px] text-white/70 hover:text-white transition-colors border border-white/15 hover:border-white/40 px-3 sm:px-4 h-9 flex items-center">Sound off</button>
+            <a href="https://certean.com" target="_blank" rel="noopener" class="cta label text-[10px] px-3 sm:px-5 h-9 hidden sm:flex items-center gap-2">Certean.com <span aria-hidden="true">&#8594;</span></a>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 flex flex-col items-center justify-center py-6 sm:py-12">
-        <div class="w-full max-w-[640px] px-4">
+    <main class="relative z-10 flex-1 flex flex-col items-center justify-center py-5 sm:py-10">
+        <div class="w-full max-w-[660px] px-4">
+
+            <!-- Eyebrow -->
+            <div class="flex items-end justify-between pb-3">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-[7px] h-[7px] bg-accent"></span>
+                    <span class="label text-[10px] text-steel">A Certean arcade</span>
+                </div>
+                <span class="label text-[10px] text-white/35 hidden sm:inline">Build 2026.1</span>
+            </div>
+
             <!-- Game Container -->
-            <div id="game-container"></div>
+            <div class="board bg-ink"><div id="game-container"></div></div>
 
             <!-- Stat row -->
-            <div class="grid grid-cols-5 border-b border-white/10">
-                <div class="py-3 sm:py-4 pr-2 sm:pr-5 border-r border-white/10">
-                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Score</div>
-                    <div id="score-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0</div>
+            <div class="grid grid-cols-5 border-x border-b border-white/10">
+                <div class="py-3 sm:py-5 px-2 sm:px-5 border-r border-white/10">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1.5 sm:mb-3 truncate">Score</div>
+                    <div id="score-stat" class="figure text-[15px] sm:text-[25px] leading-none whitespace-nowrap overflow-hidden">0</div>
                 </div>
-                <div class="py-3 sm:py-4 px-2 sm:px-5 border-r border-white/10">
-                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Compliance</div>
-                    <div id="compliance-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0%</div>
+                <div class="py-3 sm:py-5 px-2 sm:px-5 border-r border-white/10">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1.5 sm:mb-3 truncate">Compliance</div>
+                    <div id="compliance-stat" class="figure text-[15px] sm:text-[25px] leading-none whitespace-nowrap overflow-hidden">0%</div>
                 </div>
-                <div class="py-3 sm:py-4 px-2 sm:px-5 border-r border-white/10">
-                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Collected</div>
-                    <div id="progress-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0</div>
+                <div class="py-3 sm:py-5 px-2 sm:px-5 border-r border-white/10 min-w-0">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1.5 sm:mb-3 truncate">Collected</div>
+                    <div id="progress-stat" class="figure text-[12px] sm:text-[18px] leading-none whitespace-nowrap overflow-hidden">0</div>
                 </div>
-                <div class="py-3 sm:py-4 px-2 sm:px-5 border-r border-white/10">
-                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Products</div>
-                    <div id="products-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">3</div>
+                <div class="py-3 sm:py-5 px-2 sm:px-5 border-r border-white/10">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1.5 sm:mb-3 truncate">Products</div>
+                    <div id="products-stat" class="figure text-[15px] sm:text-[25px] leading-none whitespace-nowrap overflow-hidden">3</div>
                 </div>
-                <div class="py-3 sm:py-4 pl-2 sm:pl-5">
-                    <div class="font-mono text-[8px] sm:text-[9px] font-semibold tracking-[0.08em] sm:tracking-[0.2em] uppercase text-steel-light mb-1.5 truncate">Updates</div>
-                    <div id="updates-stat" class="text-[14px] sm:text-[22px] leading-none" style="font-family: 'Nabla', 'Geist', sans-serif">0 / 5</div>
+                <div class="py-3 sm:py-5 px-2 sm:px-5">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1.5 sm:mb-3 truncate">Updates</div>
+                    <div id="updates-stat" class="figure text-[13px] sm:text-[20px] leading-none whitespace-nowrap overflow-hidden">0 / 5</div>
                 </div>
             </div>
 
             <!-- Legend -->
-            <div class="flex items-center pt-4">
-                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 sm:gap-x-6">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 bg-[#8FA5CC]"></span>
-                        <span class="text-xs text-white/55">Elements</span>
-                        <span id="standards-count" class="font-mono text-[10px] text-white/35 tabular-nums">0</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 border border-[#8FA5CC]"></span>
-                        <span class="text-xs text-white/55">Legislations</span>
-                        <span id="legislations-count" class="font-mono text-[10px] text-white/35 tabular-nums">0</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#8FA5CC]"></span>
-                        <span class="text-xs text-white/55">Markings</span>
-                        <span id="markings-count" class="font-mono text-[10px] text-white/35 tabular-nums">0</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 bg-[#8FA5CC]/40"></span>
-                        <span class="text-xs text-white/55">Requirements</span>
-                        <span id="requirements-count" class="font-mono text-[10px] text-white/35 tabular-nums">0</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#7DA3E0]"></span>
-                        <span class="text-xs text-white/55">Updates</span>
-                    </div>
+            <div class="flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6 pt-5">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 bg-[#8FA5CC]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Elements</span>
+                    <span id="standards-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 border border-[#8FA5CC]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Legislations</span>
+                    <span id="legislations-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#8FA5CC]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Markings</span>
+                    <span id="markings-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-1.5 h-1.5 bg-[#8FA5CC]/40"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Requirements</span>
+                    <span id="requirements-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#7DA3E0]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Updates</span>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="px-4 sm:px-10 py-4 flex items-center justify-between border-t border-white/10 font-mono text-[10px] text-white/35 tracking-[0.15em]">
-        <span>© 2026 Certean</span>
-        <span class="hidden sm:inline">WASD / ARROWS TO MOVE · SPACE TO START</span><span class="sm:hidden">SWIPE TO MOVE · TAP TO START</span>
+    <footer class="relative z-10 px-4 sm:px-10 py-4 flex items-center justify-between border-t border-white/10 label text-[9px] sm:text-[10px] text-white/45">
+        <span>&#169; 2026 Certean</span>
+        <span class="hidden sm:inline">WASD / Arrows to move &#183; Space to start</span><span class="sm:hidden">Swipe &#183; Tap to start</span>
     </footer>
 
     <script>
@@ -155,6 +238,8 @@
             constructor() {
                 this.ctx = null;
                 this.masterGain = null;
+                this.musicGain = null;   // every music note hangs off this bus
+                this.musicMode = false;  // true while a track schedules its notes
                 this.initialized = false;
                 this.muted = false;
                 this.jinglePlaying = false;
@@ -171,6 +256,9 @@
                     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                     this.masterGain = this.ctx.createGain();
                     this.masterGain.connect(this.ctx.destination);
+                    this.musicGain = this.ctx.createGain();
+                    this.musicGain.gain.value = 0.8; // headroom for eight voices
+                    this.musicGain.connect(this.masterGain);
                     this.initialized = true;
                     this.resume();
                 } catch (e) {
@@ -194,8 +282,8 @@
                     this.stopJingle(true);
                 } else if (this.currentTrack === 'fanfare') {
                     this.playFanfare();
-                } else if (this.currentTrack === 'hero') {
-                    this.playSpaceHero();
+                } else if (this.currentTrack === 'anthem') {
+                    this.playAnthem();
                 }
             }
 
@@ -210,7 +298,7 @@
                 gain.gain.setValueAtTime(volume, this.ctx.currentTime + delay);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + delay + duration);
                 osc.connect(gain);
-                gain.connect(this.masterGain);
+                gain.connect(this.musicMode && this.musicGain ? this.musicGain : this.masterGain);
                 osc.start(this.ctx.currentTime + delay);
                 osc.stop(this.ctx.currentTime + delay + duration);
             }
@@ -218,6 +306,7 @@
             // Stop the looping jingle
             stopJingle(keepTrack = false) {
                 this.jinglePlaying = false;
+                this.musicMode = false;
                 if (!keepTrack) {
                     this.currentTrack = null;
                 }
@@ -225,131 +314,128 @@
                     clearTimeout(this.jingleTimeout);
                     this.jingleTimeout = null;
                 }
+                // Notes are scheduled up to a bar ahead — drop the bus they are
+                // connected to so nothing from the old track survives a restart
+                if (this.musicGain) {
+                    try { this.musicGain.disconnect(); } catch (e) { /* already gone */ }
+                    this.musicGain = this.ctx.createGain();
+                    this.musicGain.gain.value = 0.8;
+                    this.musicGain.connect(this.masterGain);
+                }
             }
 
-            // 80s Sci-Fi Hero Theme - Automan/Star Wars/Knight Rider style
-            playSpaceHero() {
+            // The European anthem: the Ode to Joy theme from the finale of
+            // Beethoven's Ninth, arranged for the square-wave band
+            playAnthem() {
                 if (!this.initialized || this.muted) {
                     // Remember what should be playing so init/unmute can resume it
-                    this.currentTrack = 'hero';
+                    this.currentTrack = 'anthem';
                     return;
                 }
                 // Don't restart if already playing
-                if (this.currentTrack === 'hero' && this.jinglePlaying) return;
+                if (this.currentTrack === 'anthem' && this.jinglePlaying) return;
                 this.stopJingle();
-                this.currentTrack = 'hero';
+                this.currentTrack = 'anthem';
                 this.jinglePlaying = true;
+
+                const N = {
+                    // bass octave
+                    F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
+                    C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+                    // melody octave
+                    C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00
+                };
+                // [frequency, beats] — the full 16-bar theme
+                const MELODY = [
+                    [N.E4, 1], [N.E4, 1], [N.F4, 1], [N.G4, 1],
+                    [N.G4, 1], [N.F4, 1], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.C4, 1], [N.D4, 1], [N.E4, 1],
+                    [N.E4, 1.5], [N.D4, 0.5], [N.D4, 2],
+
+                    [N.E4, 1], [N.E4, 1], [N.F4, 1], [N.G4, 1],
+                    [N.G4, 1], [N.F4, 1], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.C4, 1], [N.D4, 1], [N.E4, 1],
+                    [N.D4, 1.5], [N.C4, 0.5], [N.C4, 2],
+
+                    [N.D4, 1], [N.D4, 1], [N.E4, 1], [N.C4, 1],
+                    [N.D4, 1], [N.E4, 0.5], [N.F4, 0.5], [N.E4, 1], [N.C4, 1],
+                    [N.D4, 1], [N.E4, 0.5], [N.F4, 0.5], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.D4, 1], [N.G3, 2],
+
+                    [N.E4, 1], [N.E4, 1], [N.F4, 1], [N.G4, 1],
+                    [N.G4, 1], [N.F4, 1], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.C4, 1], [N.D4, 1], [N.E4, 1],
+                    [N.D4, 1.5], [N.C4, 0.5], [N.C4, 2]
+                ];
+                // Second voice: the diatonic third under each melody note
+                const THIRD = {};
+                THIRD[N.C4] = N.A3; THIRD[N.D4] = N.B3; THIRD[N.E4] = N.C4;
+                THIRD[N.F4] = N.D4; THIRD[N.G4] = N.E4; THIRD[N.G3] = N.E3;
+                // Triads under each bar
+                const CH = {
+                    C: [N.C3, N.E3, N.G3],
+                    G: [N.G2, N.B2, N.D3],
+                    F: [N.F2, N.A2, N.C3]
+                };
+                const CHORDS = [
+                    CH.C, CH.G, CH.C, CH.G, CH.C, CH.G, CH.F, CH.C,
+                    CH.G, CH.C, CH.G, CH.C, CH.C, CH.G, CH.F, CH.C
+                ];
 
                 const playLoop = () => {
                     if (!this.jinglePlaying || this.muted) return;
+                    this.musicMode = true;
 
-                    // Tempo: 140 BPM, 1/8 note = 0.214s
-                    const eighth = 0.214;
+                    const beat = 0.42;          // ~143 BPM, marching pace
+                    const bars = CHORDS.length;
 
-                    // Electronic kick drum
-                    const playKick = (time) => {
-                        this.playTone(150, 0.08, 'sine', 0.35, time);
-                        this.playTone(50, 0.15, 'sine', 0.3, time);
-                    };
-
-                    // Snare/clap
-                    const playSnare = (time) => {
-                        this.playTone(200, 0.05, 'square', 0.15, time);
-                        for (let i = 0; i < 5; i++) {
-                            this.playTone(800 + Math.random() * 600, 0.08, 'sawtooth', 0.04, time + i * 0.005);
-                        }
-                    };
-
-                    // Hi-hat
-                    const playHat = (time, open = false) => {
-                        const dur = open ? 0.12 : 0.04;
-                        for (let i = 0; i < 3; i++) {
-                            this.playTone(8000 + Math.random() * 4000, dur, 'sawtooth', 0.02, time);
-                        }
-                    };
-
-                    // Synth bass
-                    const playBass = (freq, time) => {
-                        this.playTone(freq, eighth * 0.9, 'sawtooth', 0.2, time);
-                        this.playTone(freq * 0.5, eighth * 1.1, 'triangle', 0.25, time);
-                    };
-
-                    // Melody - A minor, serious tone (Am→Dm→E→Am, i-iv-V-i)
-                    const melody = [
-                        // Bar 1: Am - low register, deliberate (i)
-                        220, 220, 262, 262, 330, 330, 330, 0,
-                        // Bar 2: Dm - weight and gravity (iv)
-                        294, 294, 349, 349, 294, 294, 262, 0,
-                        // Bar 3: E - tension with G# (V)
-                        330, 330, 415, 415, 494, 494, 330, 0,
-                        // Bar 4: Am - resolve, descending
-                        440, 392, 330, 330, 220, 220, 220, 0,
-                        // Bar 5: Dm→Am descent
-                        294, 294, 220, 220, 330, 330, 220, 0,
-                        // Bar 6: E→Am final resolve
-                        330, 415, 494, 494, 440, 330, 262, 220,
-                        // Bar 7-8: Am pedal tone
-                        220, 220, 220, 0, 0, 0, 0, 0,
-                    ];
-
-                    // Bass - fifths in Am: A→D→E→A
-                    const bassNotes = [
-                        // Bar 1-2: Am to Dm
-                        110, 0, 110, 0, 220, 0, 110, 0,
-                        73, 0, 73, 0, 147, 0, 73, 0,
-                        // Bar 3-4: E to Am (V-i)
-                        82, 0, 82, 0, 165, 0, 82, 0,
-                        110, 0, 110, 0, 220, 0, 110, 0,
-                        // Bar 5-6: Dm to E (iv-V)
-                        73, 0, 73, 0, 147, 0, 73, 0,
-                        82, 0, 82, 0, 165, 0, 82, 0,
-                        // Bar 7-8: Am resolve
-                        110, 0, 110, 0, 110, 0, 0, 0,
-                    ];
-
-                    const totalEighths = melody.length;
-                    const loopDuration = totalEighths * eighth;
-
-                    // Schedule melody
-                    melody.forEach((freq, i) => {
-                        const time = i * eighth;
-                        if (freq > 0) {
-                            // Lead synth (bright square wave - very 80s)
-                            this.playTone(freq, eighth * 0.85, 'square', 0.15, time);
-                            // Detuned second oscillator for thickness
-                            this.playTone(freq * 1.005, eighth * 0.85, 'square', 0.08, time);
-                            // Add brass layer on held notes (same freq as previous)
-                            if (i > 0 && melody[i-1] === freq) {
-                                this.playTone(freq, eighth * 0.9, 'sawtooth', 0.08, time);
-                            }
-                        }
+                    // Voices 1-3: square lead, an octave shimmer above it and a
+                    // third below, so the tune moves in parallel harmony
+                    let t = 0;
+                    MELODY.forEach(note => {
+                        const dur = beat * note[1];
+                        this.playTone(note[0], dur * 0.92, 'square', 0.16, t);
+                        this.playTone(note[0] * 2, dur * 0.45, 'triangle', 0.035, t);
+                        const third = THIRD[note[0]];
+                        if (third) this.playTone(third, dur * 0.9, 'square', 0.08, t);
+                        t += dur;
                     });
 
-                    // Schedule bass
-                    bassNotes.forEach((freq, i) => {
-                        if (freq > 0) {
-                            playBass(freq, i * eighth);
-                        }
-                    });
+                    for (let i = 0; i < bars; i++) {
+                        const chord = CHORDS[i];
+                        const bt = i * 4 * beat;
 
-                    // Schedule drums on strict 1/8 grid
-                    for (let i = 0; i < totalEighths; i++) {
-                        const time = i * eighth;
-                        // Kick on 1 and 5 (beats 0, 4 of each 8)
-                        if (i % 8 === 0 || i % 8 === 4) playKick(time);
-                        // Snare on 3 and 7 (beats 2, 6 of each 8)
-                        if (i % 8 === 2 || i % 8 === 6) playSnare(time);
-                        // Hi-hat on every 1/8, open on downbeats
-                        playHat(time, i % 4 === 0);
+                        // Voices 4-6: a sustained triad twice a bar
+                        [0, 2].forEach(half => {
+                            const ht = bt + half * beat;
+                            chord.forEach(f => this.playTone(f, beat * 1.85, 'triangle', 0.05, ht));
+                            // Voice 7: walking bass, root then fifth
+                            this.playTone(chord[0] / 2, beat * 0.9, 'sine', 0.2, ht);
+                            this.playTone(chord[2] / 2, beat * 0.55, 'sine', 0.13, ht + beat);
+                            // Kick
+                            this.playTone(150, 0.08, 'sine', 0.24, ht);
+                            this.playTone(50, 0.15, 'sine', 0.2, ht);
+                        });
+
+                        // Voice 8: a bright arpeggio on the offbeats
+                        for (let h = 0; h < 4; h++) {
+                            this.playTone(chord[h % 3] * 2, 0.12, 'triangle', 0.05, bt + h * beat + beat * 0.5);
+                        }
+
+                        // Kit: snare on three, hats on every beat
+                        this.playTone(200, 0.05, 'square', 0.1, bt + 2 * beat);
+                        for (let h = 0; h < 4; h++) {
+                            this.playTone(8000, 0.02, 'square', h === 0 ? 0.05 : 0.03, bt + h * beat);
+                        }
                     }
 
-                    this.jingleTimeout = setTimeout(() => playLoop(), loopDuration * 1000);
+                    this.musicMode = false;
+                    this.jingleTimeout = setTimeout(() => playLoop(), bars * 4 * beat * 1000);
                 };
 
                 playLoop();
             }
 
-            // Fanfare of Glory - triumphant brass fanfare
             playFanfare() {
                 if (!this.initialized || this.muted) {
                     this.currentTrack = 'fanfare';
@@ -362,6 +448,7 @@
 
                 const playLoop = () => {
                     if (!this.jinglePlaying || this.muted) return;
+                    this.musicMode = true;
 
                     // Timpani drum hits
                     const playTimpani = (time, accent = false) => {
@@ -452,6 +539,7 @@
                         time += note.dur;
                     });
 
+                    this.musicMode = false;
                     this.jingleTimeout = setTimeout(() => playLoop(), time * 1000);
                 };
 
@@ -555,6 +643,58 @@
             document.getElementById('mute-btn').textContent = soundManager.muted ? 'Sound on' : 'Sound off';
         });
 
+        // ===== BRAND THEME =====
+        // Certean: near-black ground, fine diagonal rules, one electric blue
+        // accent, everything else black / white / hairline.
+        const T = {
+            ink: 0x0F141D,
+            inkStr: '#0F141D',
+            wall: 0x1A2130,          // module blocks
+            steel: 0x6B80A0,         // hairlines and quiet labels
+            steelStr: '#98A0AE',
+            dimStr: '#7A8291',
+            labelStr: '#6B80A0',
+            dot: 0x8FA5CC,           // every collectible, steel on the board
+            dotStr: '#8FA5CC',
+            update: 0x7DA3E0,        // the one lit blue
+            updateStr: '#7DA3E0',
+            accent: 0xFFC53D,        // the gold of the player and every call to action
+            accentStr: '#FFC53D',
+            hairline: 0xFFFFFF,
+            white: 0xFFFFFF,
+            whiteStr: '#FFFFFF'
+        };
+        const CATEGORY_COLORS = {
+            standards: T.accentStr,
+            legislations: T.accentStr,
+            markings: T.accentStr,
+            requirements: 'rgba(255, 255, 255, 0.95)'
+        };
+        const STRIPE_PITCH = 7;
+        // Crisp on retina: render the board at device resolution and zoom the
+        // camera back, so world coordinates stay in maze pixels
+        const DPR = Math.min(Math.round(window.devicePixelRatio || 1), 2);
+
+        // Display (headline) and mono (label) type, set the way the site sets them
+        const display = (size) => ({ fontSize: size + 'px', fontFamily: 'Nabla' });
+        const figure = (size) => ({ fontSize: size + 'px', fontFamily: 'Nabla' });
+        const label = (size, color) => ({
+            fontSize: size + 'px', fontFamily: 'Geist Mono', fontStyle: '500', color: color || T.steelStr
+        });
+        // Mono labels are tracked wide; headlines are tracked tight
+        const track = (text, amount) => {
+            if (text.setLetterSpacing) text.setLetterSpacing(amount);
+            return text;
+        };
+        // The lined background, as a tiling sprite behind everything
+        const addStripes = (scene, depth, alpha) => {
+            const sprite = scene.add.tileSprite(
+                0, 0, MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 'stripes'
+            ).setOrigin(0, 0).setDepth(depth);
+            if (alpha !== undefined) sprite.setAlpha(alpha);
+            return sprite;
+        };
+
         // Game Configuration
         const TILE_SIZE = 32;
         const PLAYER_SPEED = 150;
@@ -589,6 +729,16 @@
         // Derive dimensions from the maze itself so every row (incl. the bottom wall) renders
         const MAZE_WIDTH = MAZE[0].length;
         const MAZE_HEIGHT = MAZE.length;
+        const BOARD_W = MAZE_WIDTH * TILE_SIZE;
+        const BOARD_H = MAZE_HEIGHT * TILE_SIZE;
+
+        // The canvas is sized in device pixels; zooming the camera by the same
+        // factor keeps every coordinate in maze pixels while text and artwork
+        // are rasterised at full display resolution (no soft, upscaled type)
+        const fitCamera = (scene) => {
+            scene.cameras.main.setZoom(DPR);
+            scene.cameras.main.centerOn(BOARD_W / 2, BOARD_H / 2);
+        };
 
         // Thumb steering: how far (in game px) the thumb has to travel from its
         // anchor before a direction is read. Small enough to feel instant on a
@@ -649,6 +799,29 @@
             ]
         };
 
+        // Regulatory updates: real amendments and standard revisions that land
+        // on a product team's desk — safety, EMC, cyber, chemicals, ecodesign
+        const UPDATES = [
+            // Safety
+            'IEC 62368-1 A11', 'IEC 62368-1 Ed.4', 'IEC 60335-1 Ed.6 A2', 'IEC 61010-1 A2',
+            'EN 60335-2-40 rev', 'UL 62368-1 Ed.3', 'IEC 62368-3 A1',
+            // EMC & radio
+            'EN 55032 A11', 'EN IEC 61000-3-2 A1', 'EN 301 489-1 v2.2.3', 'CISPR 35 A1',
+            'FCC Part 15 amend.', 'EN 300 328 v2.2.2',
+            // Cybersecurity
+            'EN 18031-1:2024', 'EN 18031-2:2024', 'RED DA 2022/30', 'CRA Annex I rev',
+            'ETSI EN 303 645 v3', 'IEC 62443-4-2 Ed.2', 'ISO/IEC 27001 A1', 'UL 2900-2-2 rev',
+            'NIS2 technical spec',
+            // Quality & environment
+            'ISO 9001 revision', 'ISO 14001 amend.', 'ISO 45001 A1',
+            // Chemicals, batteries, ecodesign
+            'REACH SVHC update', 'RoHS exemption 7(c)', 'EU Battery Reg Art.7',
+            'ESPR delegated act', 'POPs Annex I rev', 'CA Prop 65 listing',
+            // Market access
+            'GPSR guidance rev', 'K-REACH annex rev', 'ANATEL Act 2.436',
+            'INMETRO Ord. 500 rev', 'KC Safety Act amend.', 'PSE Ordinance rev'
+        ];
+
         // Enemy flags (country flags)
         const FLAGS = [
             { name: 'EU', color: 0x003399, starColor: 0xFFCC00 },         // European Union
@@ -664,15 +837,17 @@
 
             preload() {
                 // Show loading text
+                fitCamera(this);
                 const loadingText = this.add.text(
-                    this.cameras.main.centerX,
-                    this.cameras.main.centerY,
-                    'INITIALIZING...',
-                    { fontSize: '14px', color: '#6B80A0', fontFamily: 'Geist Mono' }
+                    BOARD_W / 2,
+                    BOARD_H / 2,
+                    'INITIALIZING',
+                    { fontSize: '11px', color: T.steelStr, fontFamily: 'Geist Mono', fontStyle: '500' }
                 ).setOrigin(0.5);
+                if (loadingText.setLetterSpacing) loadingText.setLetterSpacing(3);
 
                 // Load the Certean logo in gold - the player IS the logo
-                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#FFC53D" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
+                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#3D63FF" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
                 const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
                 this.load.svg('player', URL.createObjectURL(svgBlob), { width: 64, height: 64 });
 
@@ -704,7 +879,7 @@
                         ctx.drawImage(this.textures.get('player').getSourceImage(), 0, 0, size, size);
                     } else {
                         // Fallback: plain gold hexagon
-                        ctx.fillStyle = '#FFC53D';
+                        ctx.fillStyle = '#3D63FF';
                         ctx.beginPath();
                         ctx.moveTo(32, 4); ctx.lineTo(60, 18); ctx.lineTo(60, 46);
                         ctx.lineTo(32, 60); ctx.lineTo(4, 46); ctx.lineTo(4, 18);
@@ -733,27 +908,38 @@
                 // Create textures for each collectible category.
                 // Blueprint system: shape encodes the category, steel on paper.
 
-                // Compliance Elements - solid steel square
+                // The lined ground: one diagonal hairline per tile, tiled across
+                // the board — the same rule pattern as the page behind it
+                if (!this.textures.exists('stripes')) {
+                    const stripeTex = this.textures.createCanvas('stripes', STRIPE_PITCH, STRIPE_PITCH);
+                    const sctx = stripeTex.getContext();
+                    sctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+                    sctx.lineWidth = 1;
+                    sctx.beginPath();
+                    sctx.moveTo(-1, STRIPE_PITCH + 1);
+                    sctx.lineTo(STRIPE_PITCH + 1, -1);
+                    sctx.stroke();
+                    stripeTex.refresh();
+                }
+
+                // Shape encodes the category; all of them share the one steel tone
                 const gStd = this.make.graphics({ x: 0, y: 0, add: false });
-                gStd.fillStyle(0x8FA5CC, 0.92);
+                gStd.fillStyle(T.dot, 0.92);
                 gStd.fillRect(4, 4, 8, 8);
                 gStd.generateTexture('dot_standard', 16, 16);
 
-                // Legislations - outlined steel square
                 const gLeg = this.make.graphics({ x: 0, y: 0, add: false });
-                gLeg.lineStyle(1.5, 0x8FA5CC, 0.92);
+                gLeg.lineStyle(1.5, T.dot, 0.92);
                 gLeg.strokeRect(4, 4, 8, 8);
                 gLeg.generateTexture('dot_legislation', 16, 16);
 
-                // Markings - solid steel circle
                 const gMark = this.make.graphics({ x: 0, y: 0, add: false });
-                gMark.fillStyle(0x8FA5CC, 0.92);
+                gMark.fillStyle(T.dot, 0.92);
                 gMark.fillCircle(8, 8, 4);
                 gMark.generateTexture('dot_marking', 16, 16);
 
-                // Requirements - small faint square (most common, lowest emphasis)
                 const gReq = this.make.graphics({ x: 0, y: 0, add: false });
-                gReq.fillStyle(0x8FA5CC, 0.38);
+                gReq.fillStyle(T.dot, 0.38);
                 gReq.fillRect(6, 6, 4, 4);
                 gReq.generateTexture('dot_requirement', 16, 16);
 
@@ -841,29 +1027,32 @@
                     g.generateTexture('flag_' + i, 64, 64);
                 });
 
-                // Create wall texture - soft blueprint block with a faint module grid
-                const wallGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-                wallGraphics.fillStyle(0x1A2130, 1);
-                wallGraphics.fillRect(0, 0, 32, 32);
-                wallGraphics.lineStyle(1, 0x6B80A0, 0.15);
-                wallGraphics.strokeRect(0.5, 0.5, 31, 31);
-                wallGraphics.generateTexture('wall', 32, 32);
+                // Wall module: a plain block inset from its tile, no border —
+                // the gap between modules does the separating. Drawn at device
+                // resolution so the edges stay crisp, displayed back at one tile.
+                if (!this.textures.exists('wall')) {
+                    const WT = TILE_SIZE * DPR;
+                    const inset = 2 * DPR;
+                    const box = WT - inset * 2;
+                    const wallTex = this.textures.createCanvas('wall', WT, WT);
+                    const wctx = wallTex.getContext();
+                    wctx.fillStyle = 'rgba(26, 33, 48, 0.85)';
+                    wctx.fillRect(inset, inset, box, box);
+                    wallTex.refresh();
+                }
 
-                // Create "update" dot texture - the one blue accent in the maze
-                const updateGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-                // Outer halo
-                updateGraphics.fillStyle(0x7DA3E0, 0.15);
-                updateGraphics.fillCircle(12, 12, 11);
-                // Middle ring
-                updateGraphics.fillStyle(0x7DA3E0, 0.4);
-                updateGraphics.fillCircle(12, 12, 8);
-                // Inner core
-                updateGraphics.fillStyle(0x7DA3E0, 1);
-                updateGraphics.fillCircle(12, 12, 5);
-                // Paper center
-                updateGraphics.fillStyle(0x10151F, 1);
-                updateGraphics.fillCircle(12, 12, 2);
-                updateGraphics.generateTexture('update_dot', 24, 24);
+                // "Update" dot - the single electric accent on the board,
+                // drawn as a square target rather than a blob
+                const gUpd = this.make.graphics({ x: 0, y: 0, add: false });
+                gUpd.fillStyle(T.update, 0.15);
+                gUpd.fillCircle(12, 12, 11);
+                gUpd.fillStyle(T.update, 0.4);
+                gUpd.fillCircle(12, 12, 8);
+                gUpd.fillStyle(T.update, 1);
+                gUpd.fillCircle(12, 12, 5);
+                gUpd.fillStyle(T.ink, 1);
+                gUpd.fillCircle(12, 12, 2);
+                gUpd.generateTexture('update_dot', 24, 24);
             }
         }
 
@@ -873,15 +1062,16 @@
             }
 
             create() {
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                fitCamera(this);
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
                 // Initialize sound on first real user gesture (mousemove is not a
                 // valid activation gesture — the AudioContext would stay suspended)
                 const initSound = () => {
                     if (soundManager.initialized) return;
                     soundManager.init();
-                    soundManager.playSpaceHero();
+                    soundManager.playAnthem();
                     ['keydown', 'click', 'touchstart', 'mousedown'].forEach(evt => {
                         document.removeEventListener(evt, initSound);
                     });
@@ -893,40 +1083,38 @@
                 // Keep SPACE from scrolling the page
                 this.input.keyboard.addCapture('SPACE');
 
-                // Category label above the title
-                const eyebrow = this.add.text(centerX, centerY - 150, 'A  C E R T E A N  A R C A D E', {
-                    fontSize: '11px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#6B80A0'
-                }).setOrigin(0.5).setAlpha(0);
+                // Lined ground
+                addStripes(this, -20);
+
+                // Category label above the title, with the brand's square bullet
+                const bullet = this.add.rectangle(centerX - 86, centerY - 150, 7, 7, T.accent).setAlpha(0);
+                const eyebrow = track(this.add.text(centerX - 72, centerY - 150, 'AI BUILT FOR COMPLIANCE',
+                    label(10)).setOrigin(0, 0.5).setAlpha(0), 2.2);
 
                 this.tweens.add({
-                    targets: eyebrow,
+                    targets: [eyebrow, bullet],
                     alpha: 1,
                     duration: 400,
                     delay: 100
                 });
 
                 // Main title
-                const mainTitle = this.add.text(centerX, centerY - 108, 'COMPLIANCE-MAN', {
-                    fontSize: '50px',
-                    fontFamily: 'Nabla'
-                }).setOrigin(0.5).setAlpha(0);
+                const mainTitle = this.add.text(centerX, centerY - 104, 'COMPLIANCE-MAN',
+                    display(50)).setOrigin(0.5).setAlpha(0);
 
                 this.tweens.add({
                     targets: mainTitle,
                     alpha: 1,
-                    y: centerY - 105,
+                    y: centerY - 101,
                     duration: 500,
                     ease: 'Cubic.easeOut'
                 });
 
                 // Tagline
-                const tagline = this.add.text(centerX, centerY - 55, 'Comply or pay.', {
-                    fontSize: '18px',
-                    fontFamily: 'Geist',
-                    color: '#98A0AE'
+                const tagline = this.add.text(centerX, centerY - 58, 'Comply or pay.', {
+                    fontSize: '16px',
+                    fontFamily: 'Geist Mono',
+                    color: '#B4B8BF'
                 }).setOrigin(0.5).setAlpha(0);
 
                 this.tweens.add({
@@ -936,26 +1124,26 @@
                     delay: 300
                 });
 
-                // Micro-divider
-                const divider = this.add.rectangle(centerX, centerY - 20, 40, 1, 0xFFFFFF).setAlpha(0);
+                // Full-width hairline rule, the way the site separates blocks
+                const divider = this.add.rectangle(centerX, centerY - 26, 300, 1, 0xFFFFFF).setAlpha(0);
                 this.tweens.add({
                     targets: divider,
-                    alpha: 0.2,
+                    alpha: 0.12,
                     duration: 400,
                     delay: 500
                 });
 
                 // Instructions - clean and simple
-                const inst1 = this.add.text(centerX, centerY + 15, 'Collect every requirement, standard and marking.', {
-                    fontSize: '15px',
-                    fontFamily: 'Geist',
-                    color: '#98A0AE'
+                const inst1 = this.add.text(centerX, centerY + 6, 'Collect every requirement, standard and marking.', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#B4B8BF'
                 }).setOrigin(0.5).setAlpha(0);
 
-                const inst2 = this.add.text(centerX, centerY + 42, 'Avoid the auditors. Clear updates before they pile up.', {
-                    fontSize: '15px',
-                    fontFamily: 'Geist',
-                    color: '#98A0AE'
+                const inst2 = this.add.text(centerX, centerY + 32, 'Avoid the auditors. Clear updates before they pile up.', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#8A8F98'
                 }).setOrigin(0.5).setAlpha(0);
 
                 this.tweens.add({
@@ -967,13 +1155,9 @@
 
                 // Controls: a label plus a looping animated demo of how to steer
                 const touchDevice = isTouchDevice();
-                const controls = this.add.text(centerX, centerY + 80,
-                    touchDevice ? 'SLIDE YOUR THUMB ANYWHERE TO STEER' : 'WASD OR ARROW KEYS TO STEER', {
-                    fontSize: '11px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#7A8291'
-                }).setOrigin(0.5).setAlpha(0);
+                const controls = track(this.add.text(centerX, centerY + 72,
+                    touchDevice ? 'SLIDE YOUR THUMB TO STEER' : 'WASD OR ARROW KEYS TO STEER',
+                    label(10, T.dimStr)).setOrigin(0.5).setAlpha(0), 2);
 
                 this.tweens.add({
                     targets: controls,
@@ -982,7 +1166,7 @@
                     delay: 700
                 });
 
-                const demo = this.createControlsDemo(centerX, centerY + 142, touchDevice);
+                const demo = this.createControlsDemo(centerX, centerY + 134, touchDevice);
                 demo.setAlpha(0);
                 this.tweens.add({
                     targets: demo,
@@ -991,13 +1175,15 @@
                     delay: 800
                 });
 
-                // Start prompt with pulse
-                const startButton = this.add.text(centerX, centerY + 218, touchDevice ? 'Tap to start' : 'Press space to start', {
-                    fontSize: '15px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#FFC53D'
-                }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
+                // Start prompt: the site's blue CTA, with a cursor that blinks
+                const startLabel = track(this.add.text(centerX, centerY + 212,
+                    (touchDevice ? 'TAP TO START' : 'PRESS SPACE TO START') + '   \u2192',
+                    label(11, '#141414')).setOrigin(0.5), 2);
+                const startBox = this.add.rectangle(centerX, centerY + 212,
+                    startLabel.width + 44, 42, T.accent);
+                startLabel.setDepth(2);
+                const startButton = this.add.container(0, 0, [startBox, startLabel]).setAlpha(0);
+                startBox.setInteractive({ useHandCursor: true });
 
                 this.tweens.add({
                     targets: startButton,
@@ -1007,10 +1193,12 @@
                     onComplete: () => {
                         this.tweens.add({
                             targets: startButton,
-                            alpha: 0.4,
-                            duration: 700,
+                            alpha: 0.2,
+                            duration: 520,
                             yoyo: true,
-                            repeat: -1
+                            repeat: -1,
+                            ease: 'Stepped',
+                            easeParams: [1]
                         });
                     }
                 });
@@ -1025,7 +1213,7 @@
                     this.scene.start('GameScene');
                 };
                 this.input.keyboard.once('keydown-SPACE', startGame);
-                startButton.once('pointerdown', startGame);
+                startBox.once('pointerdown', startGame);
                 this.input.once('pointerdown', startGame);
             }
 
@@ -1044,30 +1232,28 @@
 
                 // Left: the player
                 const PX = -112;
-                const pad = this.add.rectangle(PX, 0, 76, 76, 0x1A2130, 0.6).setStrokeStyle(1, 0x6B80A0, 0.25);
+                const pad = this.add.rectangle(PX, 0, 76, 76, T.wall, 0.75).setStrokeStyle(1, T.hairline, 0.12);
                 const player = this.add.image(PX, 0, 'player_1').setDisplaySize(30, 30);
                 c.add([pad, player]);
 
                 // Faint guide arrows around the player
                 [['up', 0, -28], ['right', 28, 0], ['down', 0, 28], ['left', -28, 0]].forEach(([k, ax, ay]) => {
-                    const tri = this.add.triangle(PX + ax, ay, 0, 0, 8, 4, 0, 8, 0x6B80A0, 0.35).setAngle(DIRS[k].angle);
+                    const tri = this.add.triangle(PX + ax, ay, 0, 0, 8, 4, 0, 8, T.white, 0.28).setAngle(DIRS[k].angle);
                     c.add(tri);
                 });
 
                 // Right: the input
                 const IX = 36;
-                const zone = this.add.rectangle(IX, 0, 170, 90, 0x1A2130, 0.6).setStrokeStyle(1, 0x6B80A0, 0.25);
+                const zone = this.add.rectangle(IX, 0, 170, 90, T.wall, 0.75).setStrokeStyle(1, T.hairline, 0.12);
                 c.add(zone);
 
                 let playInput;
                 if (touch) {
                     const DIST = 38;
                     const ring = this.add.circle(IX, 0, 17).setStrokeStyle(1.5, 0xFFFFFF, 0.4).setAlpha(0);
-                    const trail = this.add.rectangle(IX, 0, DIST, 3, 0xFFC53D, 0.6).setOrigin(0, 0.5).setAlpha(0);
+                    const trail = this.add.rectangle(IX, 0, DIST, 3, T.accent, 0.6).setOrigin(0, 0.5).setAlpha(0);
                     const thumb = this.add.circle(IX, 0, 13, 0xFFFFFF, 0.9).setAlpha(0);
-                    const hint = this.add.text(IX, 32, 'slide', {
-                        fontSize: '9px', fontFamily: 'Geist Mono', color: '#6B80A0'
-                    }).setOrigin(0.5);
+                    const hint = track(this.add.text(IX, 32, 'SLIDE', label(8, T.dimStr)).setOrigin(0.5), 2);
                     c.add([ring, trail, thumb, hint]);
 
                     playInput = (d, onDone) => {
@@ -1105,13 +1291,13 @@
                     const keys = {};
                     Object.keys(layout).forEach(k => {
                         const [kx, ky] = layout[k];
-                        const cap = this.add.rectangle(kx, ky, K, K, 0x232B3A, 1).setStrokeStyle(1, 0x6B80A0, 0.4);
-                        const glow = this.add.rectangle(kx, ky, K, K, 0xFFC53D, 1).setAlpha(0);
-                        const label = this.add.text(kx, ky, glyph[k], {
-                            fontSize: '13px', fontFamily: 'Geist Mono', color: '#98A0AE'
+                        const cap = this.add.rectangle(kx, ky, K, K, T.wall, 1).setStrokeStyle(1, T.hairline, 0.2);
+                        const glow = this.add.rectangle(kx, ky, K, K, T.accent, 1).setAlpha(0);
+                        const glyphText = this.add.text(kx, ky, glyph[k], {
+                            fontSize: '13px', fontFamily: 'Geist Mono', color: '#B4B8BF'
                         }).setOrigin(0.5);
-                        c.add([cap, glow, label]);
-                        keys[k] = { cap, glow, label };
+                        c.add([cap, glow, glyphText]);
+                        keys[k] = { cap, glow, label: glyphText };
                     });
 
                     playInput = (d, onDone) => {
@@ -1119,8 +1305,8 @@
                         this.tweens.add({ targets: [k.cap, k.glow, k.label], scale: 0.88, duration: 120, yoyo: true, hold: 420 });
                         this.tweens.add({
                             targets: k.glow, alpha: 1, duration: 120, yoyo: true, hold: 420,
-                            onStart: () => k.label.setColor('#0F141D'),
-                            onComplete: () => { k.label.setColor('#98A0AE'); onDone(); }
+                            onStart: () => k.label.setColor('#FFFFFF'),
+                            onComplete: () => { k.label.setColor('#B4B8BF'); onDone(); }
                         });
                     };
                 }
@@ -1173,6 +1359,7 @@
                 this.touchPointerId = null;
                 this.validSpawnPositions = [];
                 this.updateDots = [];
+                this.updateNameIndex = Math.floor(Math.random() * UPDATES.length);
                 this.activeUpdates = 0; // Counter for active update dots
                 this.totalUpdatesAdded = 0; // Total updates spawned this game (max 15)
                 // Chomping animation state
@@ -1189,9 +1376,14 @@
             }
 
             create() {
-                // Start/continue the background music (loops automatically)
+                fitCamera(this);
+                this.physics.world.setBounds(0, 0, BOARD_W, BOARD_H);
+
+                // Start the background music. Anything left over from a win or
+                // game-over sting is cut first, so a restart never doubles up.
                 soundManager.init();
-                soundManager.playSpaceHero();
+                if (soundManager.currentTrack !== 'anthem') soundManager.stopJingle();
+                soundManager.playAnthem();
 
                 // Reset sidebar counts
                 this.updateSidebarCounts();
@@ -1224,22 +1416,22 @@
                     if (this.gameOver) return;
                     if (this.swipeOrigin && p.id !== this.touchPointerId) return; // ignore a second finger
                     this.touchPointerId = p.id;
-                    this.swipeOrigin = { x: p.x, y: p.y };
-                    if (p.wasTouch) this.touchStick.show(p.x, p.y);
+                    this.swipeOrigin = { x: p.worldX, y: p.worldY };
+                    if (p.wasTouch) this.touchStick.show(p.worldX, p.worldY);
                 });
                 this.input.on('pointermove', p => {
                     if (!p.isDown || !this.swipeOrigin || p.id !== this.touchPointerId) return;
-                    this.touchStick.follow(p.x, p.y);
-                    const dx = p.x - this.swipeOrigin.x;
-                    const dy = p.y - this.swipeOrigin.y;
+                    this.touchStick.follow(p.worldX, p.worldY);
+                    const dx = p.worldX - this.swipeOrigin.x;
+                    const dy = p.worldY - this.swipeOrigin.y;
                     if (Math.max(Math.abs(dx), Math.abs(dy)) < TOUCH_DEADZONE) return;
                     const dir = Math.abs(dx) > Math.abs(dy)
                         ? (dx > 0 ? 'right' : 'left')
                         : (dy > 0 ? 'down' : 'up');
                     this.touchHeld = dir;
                     this.queuedDirection = dir;
-                    this.swipeOrigin = { x: p.x, y: p.y };
-                    this.touchStick.anchor(p.x, p.y);
+                    this.swipeOrigin = { x: p.worldX, y: p.worldY };
+                    this.touchStick.anchor(p.worldX, p.worldY);
                 });
                 const release = p => {
                     if (p.id !== this.touchPointerId) return;
@@ -1288,25 +1480,32 @@
                     follow: (x, y) => dot.setPosition(x, y),
                     anchor: (x, y) => {
                         if (!ring.visible) return;
-                        ring.setPosition(x, y).setStrokeStyle(1.5, 0xFFC53D, 0.6);
+                        ring.setPosition(x, y).setStrokeStyle(1.5, T.accent, 0.6);
                     },
                     hide: () => { ring.setVisible(false); dot.setVisible(false); }
                 };
             }
 
             createMaze() {
+                // Lined ground first, maze drawn on top
+                addStripes(this, -20);
                 this.walls = this.physics.add.staticGroup();
 
+                // Every wall tile is its own discrete module, drawn from the
+                // dotted-border texture
                 for (let y = 0; y < MAZE_HEIGHT; y++) {
                     for (let x = 0; x < MAZE_WIDTH; x++) {
-                        if (MAZE[y][x] === 1) {
-                            const wall = this.walls.create(
-                                x * TILE_SIZE + TILE_SIZE / 2,
-                                y * TILE_SIZE + TILE_SIZE / 2,
-                                'wall'
-                            );
-                            wall.setDisplaySize(TILE_SIZE, TILE_SIZE);
-                        }
+                        if (MAZE[y][x] !== 1) continue;
+                        const wall = this.walls.create(
+                            x * TILE_SIZE + TILE_SIZE / 2,
+                            y * TILE_SIZE + TILE_SIZE / 2,
+                            'wall'
+                        );
+                        // Static bodies do not follow a scale change on their own:
+                        // the texture is drawn at device resolution, so the body
+                        // has to be rebuilt at the displayed tile size
+                        wall.setDisplaySize(TILE_SIZE, TILE_SIZE).setDepth(-10);
+                        wall.refreshBody();
                     }
                 }
             }
@@ -1355,7 +1554,7 @@
                             );
                             dot.itemName = items[itemIndex];
                             dot.category = category;
-                            dot.setDisplaySize(category === 'requirements' ? 12 : 14, category === 'requirements' ? 12 : 14);
+                            dot.setDisplaySize(category === 'requirements' ? 12 : 15, category === 'requirements' ? 12 : 15);
                             dot.isUpdate = false;
                             this.totalDots++;
                             this.initialDots++;
@@ -1399,20 +1598,18 @@
                     pos.y * TILE_SIZE + TILE_SIZE / 2,
                     'update_dot'
                 );
-                updateDot.itemName = 'UPDATE';
+                updateDot.itemName = UPDATES[this.updateNameIndex++ % UPDATES.length];
                 updateDot.category = 'update';
                 updateDot.setDisplaySize(20, 20);
                 updateDot.isUpdate = true;
                 this.totalDots++;
 
                 // Add "UPDATE" label above the dot - green theme
-                const label = this.add.text(updateDot.x, updateDot.y - 18, 'UPDATE', {
-                    fontSize: '9px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#7DA3E0'
-                }).setOrigin(0.5);
-                updateDot.label = label;
+                const dotLabel = track(this.add.text(updateDot.x, updateDot.y - 18,
+                    updateDot.itemName.toUpperCase(),
+                    label(8, T.updateStr)).setOrigin(0.5), 0.8);
+                dotLabel.x = Phaser.Math.Clamp(updateDot.x, dotLabel.width / 2 + 3, BOARD_W - dotLabel.width / 2 - 3);
+                updateDot.label = dotLabel;
 
                 // Pulsing glow animation for the dot
                 this.tweens.add({
@@ -1428,8 +1625,8 @@
 
                 // Pulsing animation for the label
                 this.tweens.add({
-                    targets: label,
-                    alpha: 0.4,
+                    targets: dotLabel,
+                    alpha: 0.35,
                     duration: 600,
                     ease: 'Sine.easeInOut',
                     yoyo: true,
@@ -1495,8 +1692,10 @@
             }
 
             updateUpdatesText() {
-                this.updatesText.setText(this.activeUpdates + ' / 5');
-                this.updatesText.setColor(this.activeUpdates > 5 ? '#FFC53D' : '');
+                this.updatesText.setText(this.activeUpdates + '/5');
+                const over = this.activeUpdates > 5;
+                this.updatesText.setColor(over ? T.accentStr : '');
+                this.updatesText.setBlink(over);
             }
 
             updateAlertText() {
@@ -1513,7 +1712,7 @@
                     // Time's up - lose a life
                     this.lives--;
                     this.livesText.setText(String(this.lives));
-                    this.cameras.main.flash(200, 235, 240, 248);
+                    this.cameras.main.flash(180, 255, 255, 255);
                     soundManager.playHit();
 
                     if (this.lives <= 0) {
@@ -1537,19 +1736,19 @@
             }
 
             showTimeoutPenalty() {
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
-                const msg = this.add.text(centerX, centerY - 40,
+                const msg = track(this.add.text(centerX, centerY - 40,
                     'UPDATES IGNORED — PRODUCT WITHDRAWN\nPRODUCTS REMAINING: ' + this.lives, {
-                    fontSize: '14px',
+                    fontSize: '12px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: '600',
+                    fontStyle: '500',
                     color: '#141414',
                     backgroundColor: '#FFFFFF',
                     align: 'center',
                     padding: { x: 16, y: 12 }
-                }).setOrigin(0.5).setDepth(30).setScale(0);
+                }).setOrigin(0.5).setDepth(30).setScale(0), 1.4);
 
                 this.tweens.add({
                     targets: msg,
@@ -1585,6 +1784,7 @@
                 );
                 this.player.setDisplaySize(26, 26);
                 this.player.setDepth(10); // Ensure player renders on top
+
                 this.playerSpawnX = spawnX * TILE_SIZE + TILE_SIZE / 2;
                 this.playerSpawnY = spawnY * TILE_SIZE + TILE_SIZE / 2;
                 this.playerRotation = 0; // facing right
@@ -1631,8 +1831,16 @@
                 const bind = id => {
                     const el = document.getElementById(id);
                     return {
-                        setText: t => { if (el) el.textContent = t; },
-                        setColor: c => { if (el) el.style.color = c; }
+                        setText: t => {
+                            if (!el || el.textContent === String(t)) return;
+                            el.textContent = t;
+                            // restart the animation even if it is already running
+                            el.classList.remove('flash');
+                            void el.offsetWidth;
+                            el.classList.add('flash');
+                        },
+                        setColor: c => { if (el) el.style.color = c; },
+                        setBlink: on => { if (el) el.classList.toggle('blink', !!on); }
                     };
                 };
                 this.scoreText = bind('score-stat');
@@ -1643,21 +1851,21 @@
 
                 this.scoreText.setText('0');
                 this.livesText.setText(String(this.lives));
-                this.progressText.setText('0 / ' + this.totalDots);
-                this.updatesText.setText('0 / 5');
+                this.progressText.setText('0/' + this.totalDots);
+                this.updatesText.setText('0/5');
                 this.updatesText.setColor('');
                 this.complianceText.setText('0%');
 
                 // Update alert with countdown (hidden by default) - positioned near top of game
-                this.updateAlert = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
-                    fontSize: '11px',
+                this.updateAlert = track(this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
+                    fontSize: '10px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#141414',
+                    fontStyle: '500',
+                    color: '#0A0A0A',
                     backgroundColor: '#FFFFFF',
                     align: 'center',
-                    padding: { x: 14, y: 8 }
-                }).setOrigin(0.5, 0.5).setDepth(100);
+                    padding: { x: 14, y: 9 }
+                }).setOrigin(0.5, 0.5).setDepth(100), 1.4);
                 this.updateAlert.setVisible(false);
                 this.updateCountdown = 10;
                 this.countdownEvent = null;
@@ -1949,6 +2157,7 @@
                 // Play appropriate sound effect
                 if (isUpdate) {
                     soundManager.playUpdateCollect();
+                    this.cameras.main.flash(120, 125, 163, 224);
                     // Decrement updates counter
                     this.activeUpdates--;
                     this.updateUpdatesText();
@@ -1975,19 +2184,21 @@
                 this.score += points;
                 this.scoreText.setText(String(this.score));
                 this.collectedDots++;
-                this.progressText.setText(this.collectedDots + ' / ' + this.totalDots);
+                this.progressText.setText(this.collectedDots + '/' + this.totalDots);
 
                 // Show collected item name (shorter for requirements)
                 const isReq = category === 'requirements';
-                const displayName = isUpdate ? 'UPDATE +50' : (isReq ? '+' + points : itemName + ' +' + points);
-                const nameText = this.add.text(dotX, dotY - 22, displayName, {
-                    fontSize: isReq ? '10px' : '12px',
+                const displayName = isUpdate
+                    ? itemName.toUpperCase() + ' +' + points
+                    : (isReq ? '+' + points : itemName + ' +' + points);
+                const nameText = track(this.add.text(dotX, dotY - 22, displayName, {
+                    fontSize: isReq ? '9px' : '11px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: isUpdate ? '#10151F' : '#141414',
-                    backgroundColor: isUpdate ? '#7DA3E0' : (isReq ? 'rgba(255, 255, 255, 0.95)' : '#FFC53D'),
-                    padding: { x: 7, y: 4 }
-                }).setOrigin(0.5).setDepth(15).setScale(0.6);
+                    fontStyle: '500',
+                    color: isUpdate ? '#FFFFFF' : '#0A0A0A',
+                    backgroundColor: isUpdate ? T.updateStr : (CATEGORY_COLORS[category] || T.accentStr),
+                    padding: { x: 7, y: 5 }
+                }).setOrigin(0.5).setDepth(15).setScale(0.6), 1);
 
                 // Keep long names fully on screen near the maze edges
                 nameText.x = Phaser.Math.Clamp(dotX, nameText.width / 2 + 4, MAZE_WIDTH * TILE_SIZE - nameText.width / 2 - 4);
@@ -2061,7 +2272,7 @@
                 this.livesText.setText(String(this.lives));
 
                 // Flash screen
-                this.cameras.main.flash(200, 235, 240, 248);
+                this.cameras.main.flash(180, 255, 255, 255);
 
                 if (this.lives <= 0) {
                     this.loseGame(enemy);
@@ -2070,35 +2281,31 @@
                     this.physics.pause();
 
                     // Show "Caught by" message
-                    const centerX = this.cameras.main.centerX;
-                    const centerY = this.cameras.main.centerY;
+                    const centerX = BOARD_W / 2;
+                    const centerY = BOARD_H / 2;
 
                     const overlay = this.add.rectangle(centerX, centerY,
-                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0F141D, 0.94).setDepth(20);
+                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.95).setDepth(20);
+                    const overlayLines = addStripes(this, 20.1, 0.9);
 
                     // Warning text
-                    const warningText = this.add.text(centerX, centerY - 55, 'A U D I T  V I O L A T I O N', {
-                        fontSize: '11px',
-                        fontFamily: 'Geist Mono',
-                        fontStyle: '600',
-                        color: '#6B80A0'
-                    }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                    const warningText = track(this.add.text(centerX, centerY - 112,
+                        'AUDIT VIOLATION', label(10, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
-                    const caughtText = this.add.text(centerX, centerY - 5, 'CAUGHT BY ' + enemy.flagName.toUpperCase() + ' AUDITORS', {
-                        fontSize: '24px',
-                        fontFamily: 'Nabla'
-                    }).setOrigin(0.5).setScale(0).setDepth(21);
+                    // Two lines so the headline can be big and still fit the board
+                    const caughtText = this.add.text(centerX, centerY - 26,
+                        'CAUGHT BY\n' + enemy.flagName.toUpperCase() + ' AUDITORS',
+                        Object.assign(display(48), { align: 'center' }))
+                        .setOrigin(0.5).setScale(0).setDepth(21);
+                    caughtText.setLineSpacing(4);
 
-                    // Fun letterforms, modest colour: desaturate the colour font
-                    if (this.game.renderer.type === Phaser.WEBGL) {
-                        caughtText.postFX.addColorMatrix().saturate(-0.75);
-                    }
+                    const overlayRule = this.add.rectangle(centerX, centerY + 62, 320, 1, T.hairline, 0.12).setDepth(21);
 
                     // Lives remaining
-                    const livesText = this.add.text(centerX, centerY + 45, 'Products remaining: ' + this.lives, {
+                    const livesText = this.add.text(centerX, centerY + 90, 'Products remaining: ' + this.lives, {
                         fontSize: '13px',
-                        fontFamily: 'Geist',
-                        color: '#98A0AE'
+                        fontFamily: 'Geist Mono',
+                        color: '#8A8F98'
                     }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
                     // Dramatic scale-in effect
@@ -2137,6 +2344,8 @@
                     // After 3 seconds, remove message and continue
                     this.time.delayedCall(3000, () => {
                         overlay.destroy();
+                        overlayLines.destroy();
+                        overlayRule.destroy();
                         caughtText.destroy();
                         warningText.destroy();
                         livesText.destroy();
@@ -2191,59 +2400,71 @@
                     if (this.gameOver) soundManager.playFanfare();
                 });
 
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
                 // Paper overlay
                 const overlay = this.add.rectangle(centerX, centerY,
-                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0F141D, 0.95).setDepth(20);
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.96).setDepth(20);
+                addStripes(this, 20.1, 0.9);
 
-                this.add.text(centerX, centerY - 110, 'C O M P L I A N C E  1 0 0 %', {
-                    fontSize: '11px',
+                this.add.rectangle(centerX - 92, centerY - 112, 7, 7, T.accent).setDepth(21);
+                track(this.add.text(centerX - 78, centerY - 112, 'COMPLIANCE 100%',
+                    label(10)).setOrigin(0, 0.5).setDepth(21), 2.4);
+
+                const wonText = this.add.text(centerX, centerY - 72, 'COMPLIANCE ACHIEVED',
+                    display(30)).setOrigin(0.5).setDepth(21);
+                // Arcade flash: hard on/off, not a soft fade
+                this.tweens.add({
+                    targets: wonText,
+                    alpha: 0.15,
+                    duration: 110,
+                    yoyo: true,
+                    repeat: 7,
+                    ease: 'Stepped',
+                    easeParams: [1]
+                });
+                this.cameras.main.flash(260, 255, 255, 255);
+
+                this.add.rectangle(centerX, centerY - 38, 320, 1, T.hairline, 0.12).setDepth(21);
+
+                this.add.text(centerX, centerY - 10, 'Score: ' + this.score.toLocaleString('en-US'), {
+                    fontSize: '13px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#6B80A0'
-                }).setOrigin(0.5).setDepth(21);
-
-                this.add.text(centerX, centerY - 70, 'COMPLIANCE ACHIEVED', {
-                    fontSize: '30px',
-                    fontFamily: 'Nabla'
-                }).setOrigin(0.5).setDepth(21);
-
-                this.add.rectangle(centerX, centerY - 35, 40, 1, 0xFFFFFF, 0.25).setDepth(21);
-
-                this.add.text(centerX, centerY - 5, 'Score: ' + this.score.toLocaleString('en-US'), {
-                    fontSize: '14px',
-                    fontFamily: 'Geist',
-                    color: '#98A0AE'
+                    color: '#8A8F98'
                 }).setOrigin(0.5).setDepth(21);
 
                 // Show penalty for remaining updates
                 if (this.activeUpdates > 0) {
-                    this.add.text(centerX, centerY + 20, 'Pending updates: −' + updatePenalty, {
+                    this.add.text(centerX, centerY + 14, 'Pending updates: −' + updatePenalty.toLocaleString('en-US'), {
                         fontSize: '13px',
-                        fontFamily: 'Geist',
-                        color: '#98A0AE'
+                        fontFamily: 'Geist Mono',
+                        color: '#8A8F98'
                     }).setOrigin(0.5).setDepth(21);
                 }
 
-                this.add.text(centerX, centerY + 60, finalScore.toLocaleString('en-US'), {
-                    fontSize: '40px',
-                    fontFamily: 'Nabla'
-                }).setOrigin(0.5).setDepth(21);
+                track(this.add.text(centerX, centerY + 94, 'FINAL SCORE',
+                    label(9)).setOrigin(0.5).setDepth(21), 2.4);
+                this.add.rectangle(centerX, centerY + 82, 320, 1, T.hairline, 0.12).setDepth(21);
 
-                this.add.text(centerX, centerY + 92, 'FINAL SCORE', {
-                    fontSize: '9px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#6B80A0'
-                }).setOrigin(0.5).setDepth(21);
+                this.add.text(centerX, centerY + 56, finalScore.toLocaleString('en-US'),
+                    figure(40)).setOrigin(0.5).setDepth(21);
 
-                const restartBtn = this.add.text(centerX, centerY + 140, isTouchDevice() ? 'Tap to play again' : 'Press space to play again', {
-                    fontSize: '13px',
-                    fontFamily: 'Geist Mono',
-                    color: '#7A8291'
-                }).setOrigin(0.5).setDepth(21).setInteractive({ useHandCursor: true });
+                const restartLabel = track(this.add.text(centerX, centerY + 148,
+                    (isTouchDevice() ? 'TAP TO PLAY AGAIN' : 'PRESS SPACE TO PLAY AGAIN') + '   \u2192',
+                    label(10, '#141414')).setOrigin(0.5).setDepth(22), 2);
+                const restartBtn = this.add.rectangle(centerX, centerY + 148,
+                    restartLabel.width + 40, 40, T.accent).setDepth(21).setInteractive({ useHandCursor: true });
+                this.tweens.add({
+                    targets: [restartBtn, restartLabel],
+                    alpha: 0.25,
+                    duration: 520,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Stepped',
+                    easeParams: [1],
+                    delay: 600
+                });
 
                 let restarted = false;
                 const restart = () => {
@@ -2268,8 +2489,8 @@
                 soundManager.stopJingle();
                 soundManager.playGameOver();
 
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
                 // Currency mapping for each market
                 const currencies = {
@@ -2291,21 +2512,16 @@
 
                 // Overlay with dark theme
                 const overlay = this.add.rectangle(centerX, centerY,
-                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0F141D, 0.95).setDepth(20);
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.96).setDepth(20);
+                addStripes(this, 20.1, 0.9);
 
                 // Non-compliance alert badge - flashing
-                const alertBadge = this.add.text(centerX, centerY - 140, 'N O N - C O M P L I A N C E', {
-                    fontSize: '11px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#6B80A0'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                const alertBadge = track(this.add.text(centerX, centerY - 142, 'NON-COMPLIANCE',
+                    label(10, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
                 // Main audit failed text - starts scaled to 0
-                const auditFailedText = this.add.text(centerX, centerY - 90, 'AUDIT FAILED', {
-                    fontSize: '40px',
-                    fontFamily: 'Nabla'
-                }).setOrigin(0.5).setScale(0).setDepth(21);
+                const auditFailedText = this.add.text(centerX, centerY - 96, 'AUDIT FAILED',
+                    display(40)).setOrigin(0.5).setScale(0).setDepth(21);
 
                 // Dramatic scale-in with shake
                 this.tweens.add({
@@ -2346,26 +2562,24 @@
                 });
 
                 // Other elements fade in
-                const withdrawnText = this.add.text(centerX, centerY - 45,
+                const withdrawnText = this.add.text(centerX, centerY - 50,
                     'Product withdrawn from the ' + (enemy ? countryName : 'US') + ' market at ' + compliancePct + '% compliance', {
-                    fontSize: '14px',
-                    fontFamily: 'Geist',
-                    color: '#98A0AE'
+                    fontSize: '13px',
+                    fontFamily: 'Geist Mono',
+                    color: '#8A8F98',
+                    align: 'center',
+                    wordWrap: { width: 540 }
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
-                const dividerLine = this.add.rectangle(centerX, centerY - 10, 40, 1, 0xFFFFFF, 1)
+                const dividerLine = this.add.rectangle(centerX, centerY - 14, 320, 1, 0xFFFFFF, 1)
                     .setAlpha(0).setDepth(21);
 
                 const penaltyAmount = { value: 0 };
                 // Penalty scales based on uncollected items: 0 if all collected, 2M if none collected
                 const uncollectedRatio = this.totalDots > 0 ? (this.totalDots - this.collectedDots) / this.totalDots : 1;
                 const targetPenalty = Math.round(2000000 * uncollectedRatio);
-                const penaltyLabel = this.add.text(centerX, centerY + 20, 'PENALTY', {
-                    fontSize: '9px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: '600',
-                    color: '#6B80A0'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                const penaltyLabel = track(this.add.text(centerX, centerY + 16, 'PENALTY',
+                    label(9)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
                 const penaltyText = this.add.text(centerX, centerY + 52, currency.symbol + '0', {
                     fontSize: '38px',
@@ -2375,11 +2589,9 @@
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
                 // Spell out the currency so the symbol is unambiguous
-                const currencyNote = this.add.text(centerX, centerY + 84, currency.name + ' (' + currency.code + ')', {
-                    fontSize: '11px',
-                    fontFamily: 'Geist Mono',
-                    color: '#7A8291'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                const currencyNote = track(this.add.text(centerX, centerY + 88,
+                    currency.name.toUpperCase() + ' (' + currency.code + ')',
+                    label(9, T.dimStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2);
 
                 // Counting animation for penalty
                 this.tweens.add({
@@ -2394,17 +2606,18 @@
                     }
                 });
 
-                const scoreText = this.add.text(centerX, centerY + 116, 'Score: ' + this.score.toLocaleString('en-US'), {
-                    fontSize: '13px',
-                    fontFamily: 'Geist',
-                    color: '#98A0AE'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
-
-                const restartText = this.add.text(centerX, centerY + 160, isTouchDevice() ? 'Tap to try again' : 'Press space to try again', {
+                const scoreText = this.add.text(centerX, centerY + 120, 'Score: ' + this.score.toLocaleString('en-US'), {
                     fontSize: '13px',
                     fontFamily: 'Geist Mono',
-                    color: '#7A8291'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21).setInteractive({ useHandCursor: true });
+                    color: '#8A8F98'
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                const restartLabel = track(this.add.text(centerX, centerY + 166,
+                    (isTouchDevice() ? 'TAP TO TRY AGAIN' : 'PRESS SPACE TO TRY AGAIN') + '   \u2192',
+                    label(10, '#141414')).setOrigin(0.5).setAlpha(0).setDepth(22), 2);
+                const restartText = this.add.rectangle(centerX, centerY + 166,
+                    restartLabel.width + 40, 40, T.accent)
+                    .setAlpha(0).setDepth(21).setInteractive({ useHandCursor: true });
 
                 // Staggered fade-in for other elements
                 this.tweens.add({
@@ -2432,10 +2645,21 @@
                     delay: 800
                 });
                 this.tweens.add({
-                    targets: restartText,
+                    targets: [restartText, restartLabel],
                     alpha: 1,
                     duration: 300,
-                    delay: 1000
+                    delay: 1000,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: [restartText, restartLabel],
+                            alpha: 0.25,
+                            duration: 520,
+                            yoyo: true,
+                            repeat: -1,
+                            ease: 'Stepped',
+                            easeParams: [1]
+                        });
+                    }
                 });
 
                 let restarted = false;
@@ -2460,8 +2684,9 @@
             scale: {
                 mode: Phaser.Scale.FIT,
                 autoCenter: Phaser.Scale.CENTER_BOTH,
-                width: MAZE_WIDTH * TILE_SIZE,
-                height: MAZE_HEIGHT * TILE_SIZE
+                width: BOARD_W * DPR,
+                height: BOARD_H * DPR,
+                autoRound: true
             },
             physics: {
                 default: 'arcade',
