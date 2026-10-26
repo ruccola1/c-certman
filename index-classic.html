@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COMPLIANCE-MAN™ | Comply or Pay!</title>
+    <link rel="icon" href="assets/c-icon-pos.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&family=Honk&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: "#0a0a0a",
+                        "surface-dark": "#141414",
+                        "surface-light": "#1e1e1e",
+                        "vibrant-green": "#10b981",
+                        "brand-white": "#f5f5f5",
+                        "muted-red": "#991b1b",
+                    },
+                    fontFamily: {
+                        sans: ["Geist", "sans-serif"],
+                        mono: ["Geist Mono", "monospace"],
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Geist', sans-serif;
+        }
+        .grid-pattern {
+            background-image:
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        #game-container {
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        #game-container canvas {
+            display: block;
+        }
+        /* Preload Honk font */
+        .font-preload {
+            font-family: 'Honk', sans-serif;
+            position: absolute;
+            left: -9999px;
+            visibility: hidden;
+        }
+    </style>
+</head>
+<body class="bg-charcoal text-brand-white min-h-screen flex flex-col">
+    <!-- Font preloader -->
+    <span class="font-preload">Loading Honk Font</span>
+    <!-- Background Grid Pattern -->
+    <div class="fixed inset-0 grid-pattern pointer-events-none"></div>
+
+    <!-- Header -->
+    <header class="border-b border-white/10 px-8 py-4 flex items-center justify-between bg-surface-dark sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <img src="assets/c-icon-pos.png" alt="CertMan" class="h-10 w-auto object-contain">
+            <div class="flex flex-col">
+                <span class="text-lg font-bold tracking-tighter leading-none">COMPLIANCE-MAN™</span>
+                <span class="text-[10px] text-white/40 font-mono tracking-[0.2em]">Comply or pay</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-8 text-sm">
+            <div class="flex flex-col items-end">
+                <span class="text-[10px] text-white/40 uppercase tracking-widest font-mono">System Status</span>
+                <span class="text-vibrant-green flex items-center gap-2 font-mono text-xs">
+                    <span class="w-1.5 h-1.5 bg-vibrant-green"></span>
+                    READY
+                </span>
+            </div>
+            <button id="mute-btn" class="border border-white/20 hover:bg-white hover:text-black transition-colors px-4 py-2 text-[10px] font-bold uppercase tracking-widest font-mono flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">volume_up</span>
+                AUDIO
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 flex items-center justify-center p-8 relative z-10">
+        <div class="flex gap-8 items-start">
+            <!-- Left Sidebar - Stats -->
+            <aside class="w-64 flex-col gap-4 hidden lg:flex">
+                <div class="p-5 bg-surface-dark border border-white/10">
+                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">How to Play</h3>
+                    <ul class="space-y-3 text-xs text-white/60">
+                        <li class="flex items-start gap-2">
+                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
+                            <span>Collect compliance elements</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
+                            <span>Avoid regulatory flags</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
+                            <span>Collect updates fast — over 5 pending costs a product</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-5 bg-surface-dark border border-white/10">
+                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">Controls</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">WASD</span>
+                            <span class="text-xs text-white/50">Move</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">ARROWS</span>
+                            <span class="text-xs text-white/50">Move</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">SPACE</span>
+                            <span class="text-xs text-white/50">Start/Restart</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Game Container -->
+            <div class="flex flex-col items-center">
+                <div id="game-container" class="shadow-2xl"></div>
+            </div>
+
+            <!-- Right Sidebar - Collectibles -->
+            <aside class="w-64 flex-col gap-4 hidden lg:flex">
+                <div class="p-5 bg-surface-dark border border-white/10">
+                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 font-mono">Collectibles</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-vibrant-green"></div>
+                                <span class="text-xs text-white/70">Compliance Elements</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-vibrant-green" id="standards-count">0</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-blue-500"></div>
+                                <span class="text-xs text-white/70">Legislations</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-blue-400" id="legislations-count">0</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-amber-500"></div>
+                                <span class="text-xs text-white/70">Markings</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-amber-400" id="markings-count">0</span>
+                        </li>
+                        <li class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-3 h-3 bg-white/30"></div>
+                                <span class="text-xs text-white/70">Requirements</span>
+                            </div>
+                            <span class="text-[10px] font-mono text-white/50" id="requirements-count">0</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="p-5 bg-surface-dark border border-white/10">
+                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">Regulatory Threats</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-muted-red/20 border border-muted-red/30 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-red-400 text-sm">flag</span>
+                            </div>
+                            <span class="text-xs text-white/70">EU, US, Brazil, S.Korea</span>
+                        </li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 px-8 py-4 bg-surface-dark text-[9px] font-mono text-white/30 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <span class="flex items-center gap-2"><span class="w-1 h-1 bg-vibrant-green"></span> SYSTEM: OPERATIONAL</span>
+            <span>BUILD: v2.0.4</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <span class="uppercase tracking-[0.3em]">CERTEAN TECHNOLOGY SYSTEMS</span>
+        </div>
+    </footer>
+
+    <script>
+        // ===== SOUND MANAGER (Web Audio API) =====
+        class SoundManager {
+            constructor() {
+                this.ctx = null;
+                this.masterGain = null;
+                this.initialized = false;
+                this.muted = false;
+                this.jinglePlaying = false;
+                this.jingleTimeout = null;
+                this.currentTrack = null;
+            }
+
+            init() {
+                if (this.initialized) {
+                    this.resume();
+                    return;
+                }
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.connect(this.ctx.destination);
+                    this.initialized = true;
+                    this.resume();
+                } catch (e) {
+                    console.warn('Web Audio not supported');
+                }
+            }
+
+            // Browsers create AudioContext suspended until a user gesture
+            resume() {
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            setMuted(muted) {
+                this.muted = muted;
+                if (this.masterGain) {
+                    this.masterGain.gain.setValueAtTime(muted ? 0 : 1, this.ctx.currentTime);
+                }
+                if (muted) {
+                    this.stopJingle(true);
+                } else if (this.currentTrack === 'fanfare') {
+                    this.playFanfare();
+                } else if (this.currentTrack === 'hero') {
+                    this.playSpaceHero();
+                }
+            }
+
+            // Play a note with given frequency, duration, and waveform
+            playTone(freq, duration, type = 'square', volume = 0.3, delay = 0) {
+                if (!this.initialized || this.muted) return;
+                this.resume();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = type;
+                osc.frequency.value = freq;
+                gain.gain.setValueAtTime(volume, this.ctx.currentTime + delay);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + delay + duration);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(this.ctx.currentTime + delay);
+                osc.stop(this.ctx.currentTime + delay + duration);
+            }
+
+            // Stop the looping jingle
+            stopJingle(keepTrack = false) {
+                this.jinglePlaying = false;
+                if (!keepTrack) {
+                    this.currentTrack = null;
+                }
+                if (this.jingleTimeout) {
+                    clearTimeout(this.jingleTimeout);
+                    this.jingleTimeout = null;
+                }
+            }
+
+            // 80s Sci-Fi Hero Theme - Automan/Star Wars/Knight Rider style
+            playSpaceHero() {
+                if (!this.initialized || this.muted) {
+                    // Remember what should be playing so init/unmute can resume it
+                    this.currentTrack = 'hero';
+                    return;
+                }
+                // Don't restart if already playing
+                if (this.currentTrack === 'hero' && this.jinglePlaying) return;
+                this.stopJingle();
+                this.currentTrack = 'hero';
+                this.jinglePlaying = true;
+
+                const playLoop = () => {
+                    if (!this.jinglePlaying || this.muted) return;
+
+                    // Tempo: 140 BPM, 1/8 note = 0.214s
+                    const eighth = 0.214;
+
+                    // Electronic kick drum
+                    const playKick = (time) => {
+                        this.playTone(150, 0.08, 'sine', 0.35, time);
+                        this.playTone(50, 0.15, 'sine', 0.3, time);
+                    };
+
+                    // Snare/clap
+                    const playSnare = (time) => {
+                        this.playTone(200, 0.05, 'square', 0.15, time);
+                        for (let i = 0; i < 5; i++) {
+                            this.playTone(800 + Math.random() * 600, 0.08, 'sawtooth', 0.04, time + i * 0.005);
+                        }
+                    };
+
+                    // Hi-hat
+                    const playHat = (time, open = false) => {
+                        const dur = open ? 0.12 : 0.04;
+                        for (let i = 0; i < 3; i++) {
+                            this.playTone(8000 + Math.random() * 4000, dur, 'sawtooth', 0.02, time);
+                        }
+                    };
+
+                    // Synth bass
+                    const playBass = (freq, time) => {
+                        this.playTone(freq, eighth * 0.9, 'sawtooth', 0.2, time);
+                        this.playTone(freq * 0.5, eighth * 1.1, 'triangle', 0.25, time);
+                    };
+
+                    // Melody - A minor, serious tone (Am→Dm→E→Am, i-iv-V-i)
+                    const melody = [
+                        // Bar 1: Am - low register, deliberate (i)
+                        220, 220, 262, 262, 330, 330, 330, 0,
+                        // Bar 2: Dm - weight and gravity (iv)
+                        294, 294, 349, 349, 294, 294, 262, 0,
+                        // Bar 3: E - tension with G# (V)
+                        330, 330, 415, 415, 494, 494, 330, 0,
+                        // Bar 4: Am - resolve, descending
+                        440, 392, 330, 330, 220, 220, 220, 0,
+                        // Bar 5: Dm→Am descent
+                        294, 294, 220, 220, 330, 330, 220, 0,
+                        // Bar 6: E→Am final resolve
+                        330, 415, 494, 494, 440, 330, 262, 220,
+                        // Bar 7-8: Am pedal tone
+                        220, 220, 220, 0, 0, 0, 0, 0,
+                    ];
+
+                    // Bass - fifths in Am: A→D→E→A
+                    const bassNotes = [
+                        // Bar 1-2: Am to Dm
+                        110, 0, 110, 0, 220, 0, 110, 0,
+                        73, 0, 73, 0, 147, 0, 73, 0,
+                        // Bar 3-4: E to Am (V-i)
+                        82, 0, 82, 0, 165, 0, 82, 0,
+                        110, 0, 110, 0, 220, 0, 110, 0,
+                        // Bar 5-6: Dm to E (iv-V)
+                        73, 0, 73, 0, 147, 0, 73, 0,
+                        82, 0, 82, 0, 165, 0, 82, 0,
+                        // Bar 7-8: Am resolve
+                        110, 0, 110, 0, 110, 0, 0, 0,
+                    ];
+
+                    const totalEighths = melody.length;
+                    const loopDuration = totalEighths * eighth;
+
+                    // Schedule melody
+                    melody.forEach((freq, i) => {
+                        const time = i * eighth;
+                        if (freq > 0) {
+                            // Lead synth (bright square wave - very 80s)
+                            this.playTone(freq, eighth * 0.85, 'square', 0.15, time);
+                            // Detuned second oscillator for thickness
+                            this.playTone(freq * 1.005, eighth * 0.85, 'square', 0.08, time);
+                            // Add brass layer on held notes (same freq as previous)
+                            if (i > 0 && melody[i-1] === freq) {
+                                this.playTone(freq, eighth * 0.9, 'sawtooth', 0.08, time);
+                            }
+                        }
+                    });
+
+                    // Schedule bass
+                    bassNotes.forEach((freq, i) => {
+                        if (freq > 0) {
+                            playBass(freq, i * eighth);
+                        }
+                    });
+
+                    // Schedule drums on strict 1/8 grid
+                    for (let i = 0; i < totalEighths; i++) {
+                        const time = i * eighth;
+                        // Kick on 1 and 5 (beats 0, 4 of each 8)
+                        if (i % 8 === 0 || i % 8 === 4) playKick(time);
+                        // Snare on 3 and 7 (beats 2, 6 of each 8)
+                        if (i % 8 === 2 || i % 8 === 6) playSnare(time);
+                        // Hi-hat on every 1/8, open on downbeats
+                        playHat(time, i % 4 === 0);
+                    }
+
+                    this.jingleTimeout = setTimeout(() => playLoop(), loopDuration * 1000);
+                };
+
+                playLoop();
+            }
+
+            // Fanfare of Glory - triumphant brass fanfare
+            playFanfare() {
+                if (!this.initialized || this.muted) {
+                    this.currentTrack = 'fanfare';
+                    return;
+                }
+                if (this.currentTrack === 'fanfare' && this.jinglePlaying) return;
+                this.stopJingle();
+                this.currentTrack = 'fanfare';
+                this.jinglePlaying = true;
+
+                const playLoop = () => {
+                    if (!this.jinglePlaying || this.muted) return;
+
+                    // Timpani drum hits
+                    const playTimpani = (time, accent = false) => {
+                        this.playTone(80, 0.15, 'triangle', accent ? 0.4 : 0.25, time);
+                        this.playTone(60, 0.2, 'sine', accent ? 0.3 : 0.2, time);
+                    };
+
+                    // Cymbal crash
+                    const playCymbal = (time) => {
+                        for (let i = 0; i < 8; i++) {
+                            this.playTone(4000 + Math.random() * 4000, 0.3, 'sawtooth', 0.03, time + i * 0.01);
+                        }
+                    };
+
+                    // Fanfare melody - triumphant brass in Bb major
+                    const melody = [
+                        // Opening call - "Rise up!"
+                        { freq: 466, dur: 0.15 },  // Bb4
+                        { freq: 466, dur: 0.15 },  // Bb4
+                        { freq: 466, dur: 0.15 },  // Bb4
+                        { freq: 587, dur: 0.5 },   // D5 (held)
+                        { freq: 0, dur: 0.1 },
+                        // Answer phrase - "The day is won!"
+                        { freq: 523, dur: 0.15 },  // C5
+                        { freq: 523, dur: 0.15 },  // C5
+                        { freq: 523, dur: 0.15 },  // C5
+                        { freq: 698, dur: 0.5 },   // F5 (held)
+                        { freq: 0, dur: 0.1 },
+                        // Rising triumph - "A new age has begun!"
+                        { freq: 587, dur: 0.2 },   // D5
+                        { freq: 659, dur: 0.2 },   // E5
+                        { freq: 698, dur: 0.2 },   // F5
+                        { freq: 784, dur: 0.2 },   // G5
+                        { freq: 880, dur: 0.6 },   // A5 (climax)
+                        { freq: 0, dur: 0.15 },
+                        // Descending resolution
+                        { freq: 784, dur: 0.15 },  // G5
+                        { freq: 698, dur: 0.15 },  // F5
+                        { freq: 587, dur: 0.15 },  // D5
+                        { freq: 466, dur: 0.5 },   // Bb4 (resolution)
+                        { freq: 0, dur: 0.2 },
+                        // Second verse - more elaborate
+                        { freq: 587, dur: 0.1 },   // D5
+                        { freq: 587, dur: 0.1 },   // D5
+                        { freq: 698, dur: 0.1 },   // F5
+                        { freq: 587, dur: 0.1 },   // D5
+                        { freq: 784, dur: 0.4 },   // G5
+                        { freq: 698, dur: 0.4 },   // F5
+                        { freq: 0, dur: 0.1 },
+                        // Grand finale
+                        { freq: 466, dur: 0.2 },   // Bb4
+                        { freq: 587, dur: 0.2 },   // D5
+                        { freq: 698, dur: 0.2 },   // F5
+                        { freq: 880, dur: 0.3 },   // A5
+                        { freq: 932, dur: 0.6 },   // Bb5 (high climax!)
+                        { freq: 0, dur: 0.6 },     // pause before loop
+                    ];
+
+                    let time = 0;
+                    let beat = 0;
+
+                    melody.forEach((note, i) => {
+                        if (note.freq > 0) {
+                            // Bright brass (sawtooth with harmonics)
+                            this.playTone(note.freq, note.dur * 0.9, 'sawtooth', 0.18, time);
+                            // Second trumpet harmony (third above on long notes)
+                            if (note.dur >= 0.3) {
+                                this.playTone(note.freq * 1.25, note.dur * 0.9, 'sawtooth', 0.1, time);
+                            }
+                            // French horn fifth below
+                            if (note.dur >= 0.2) {
+                                this.playTone(note.freq * 0.667, note.dur * 1.1, 'triangle', 0.15, time);
+                            }
+                            // Tuba bass on downbeats
+                            if (beat % 4 === 0) {
+                                this.playTone(note.freq * 0.25, note.dur * 1.3, 'triangle', 0.25, time);
+                            }
+                        }
+                        // Timpani on strong beats
+                        if (note.dur >= 0.3 && note.freq > 0) {
+                            playTimpani(time, beat % 4 === 0);
+                        }
+                        // Cymbal on climax notes
+                        if (note.freq >= 880) {
+                            playCymbal(time);
+                        }
+                        beat++;
+                        time += note.dur;
+                    });
+
+                    this.jingleTimeout = setTimeout(() => playLoop(), time * 1000);
+                };
+
+                playLoop();
+            }
+
+            // Chomp sound - quick waka waka
+            playChomp() {
+                if (!this.initialized || this.muted) return;
+                this.playTone(400, 0.05, 'square', 0.15);
+                this.playTone(300, 0.05, 'square', 0.15, 0.05);
+            }
+
+            // Update collect - sparkly special sound
+            playUpdateCollect() {
+                if (!this.initialized || this.muted) return;
+                this.playTone(880, 0.08, 'sine', 0.2);
+                this.playTone(1108, 0.08, 'sine', 0.2, 0.08);
+                this.playTone(1318, 0.08, 'sine', 0.2, 0.16);
+                this.playTone(1760, 0.15, 'sine', 0.25, 0.24);
+            }
+
+            // Warning alarm - urgent two-tone siren
+            playAlarm() {
+                if (!this.initialized || this.muted) return;
+                for (let i = 0; i < 3; i++) {
+                    this.playTone(880, 0.12, 'square', 0.18, i * 0.3);
+                    this.playTone(660, 0.12, 'square', 0.18, i * 0.3 + 0.15);
+                }
+            }
+
+            // Hit by enemy - comedic bonk
+            playHit() {
+                if (!this.initialized || this.muted) return;
+                // Descending bonk
+                this.playTone(400, 0.1, 'sawtooth', 0.25);
+                this.playTone(200, 0.15, 'sawtooth', 0.2, 0.1);
+                this.playTone(100, 0.2, 'sawtooth', 0.15, 0.25);
+                // Funny boing
+                this.playTone(150, 0.1, 'triangle', 0.2, 0.4);
+                this.playTone(250, 0.1, 'triangle', 0.15, 0.45);
+            }
+
+            // Game over - sad trombone
+            playGameOver() {
+                if (!this.initialized || this.muted) return;
+                const sadNotes = [
+                    { freq: 392, dur: 0.3 },   // G4
+                    { freq: 370, dur: 0.3 },   // F#4
+                    { freq: 349, dur: 0.3 },   // F4
+                    { freq: 330, dur: 0.6 },   // E4 (held, sad)
+                ];
+                let time = 0;
+                sadNotes.forEach(note => {
+                    this.playTone(note.freq, note.dur, 'triangle', 0.25, time);
+                    this.playTone(note.freq * 0.5, note.dur, 'triangle', 0.15, time);
+                    time += note.dur;
+                });
+                // Final wobble for comedic effect
+                for (let i = 0; i < 6; i++) {
+                    this.playTone(165 + (i % 2) * 10, 0.1, 'sawtooth', 0.1, time + i * 0.08);
+                }
+            }
+
+            // Win fanfare
+            playWin() {
+                if (!this.initialized || this.muted) return;
+                const fanfare = [
+                    { freq: 523, dur: 0.15 },  // C5
+                    { freq: 659, dur: 0.15 },  // E5
+                    { freq: 784, dur: 0.15 },  // G5
+                    { freq: 1047, dur: 0.4 },  // C6
+                ];
+                let time = 0;
+                fanfare.forEach((note, i) => {
+                    this.playTone(note.freq, note.dur, 'square', 0.2, time);
+                    this.playTone(note.freq * 0.5, note.dur, 'triangle', 0.15, time);
+                    time += note.dur;
+                });
+                // Victory sparkles
+                for (let i = 0; i < 5; i++) {
+                    this.playTone(1500 + i * 200, 0.1, 'sine', 0.1, time + i * 0.1);
+                }
+            }
+
+            // Start game blip
+            playStartGame() {
+                if (!this.initialized || this.muted) return;
+                this.playTone(523, 0.08, 'square', 0.2);
+                this.playTone(784, 0.08, 'square', 0.2, 0.08);
+                this.playTone(1047, 0.15, 'square', 0.25, 0.16);
+            }
+        }
+
+        // Global sound manager instance
+        const soundManager = new SoundManager();
+
+        // Mute button functionality
+        document.getElementById('mute-btn').addEventListener('click', () => {
+            soundManager.setMuted(!soundManager.muted);
+            const btn = document.getElementById('mute-btn');
+            const icon = btn.querySelector('.material-symbols-outlined');
+            icon.textContent = soundManager.muted ? 'volume_off' : 'volume_up';
+        });
+
+        // Game Configuration
+        const TILE_SIZE = 32;
+        const PLAYER_SPEED = 150;
+        const ENEMY_SPEED = 130;
+
+        // Maze layout: 0 = path, 1 = wall, 2 = dot position, 3 = enemy spawn, 4 = player spawn
+        const MAZE = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+            [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,2,1,1,1,1,1,2,1,2,1,1,2,1],
+            [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
+            [1,1,1,1,2,1,1,1,0,1,0,1,1,1,2,1,1,1,1],
+            [0,0,0,1,2,1,0,0,0,0,0,0,0,1,2,1,0,0,0],
+            [1,1,1,1,2,1,0,1,0,3,0,1,0,1,2,1,1,1,1],
+            [0,0,0,0,2,0,0,1,3,3,3,1,0,0,2,0,0,0,0],
+            [1,1,1,1,2,1,0,1,1,1,1,1,0,1,2,1,1,1,1],
+            [0,0,0,1,2,1,0,0,0,0,0,0,0,1,2,1,0,0,0],
+            [1,1,1,1,2,1,0,1,1,1,1,1,0,1,2,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+            [1,2,2,1,2,2,2,2,2,4,2,2,2,2,2,1,2,2,1],
+            [1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],
+            [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
+            [1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        // Derive dimensions from the maze itself so every row (incl. the bottom wall) renders
+        const MAZE_WIDTH = MAZE[0].length;
+        const MAZE_HEIGHT = MAZE.length;
+
+        // Collectibles categorized by type
+        const COLLECTIBLES = {
+            standards: [
+                // Safety Standards
+                'IEC 62368-1', 'IEC 60335-1', 'IEC 60950-1', 'IEC 61010-1', 'UL 62368-1',
+                // EMC Standards
+                'CISPR 32', 'CISPR 35', 'IEC 61000-4-2', 'IEC 61000-4-3', 'IEC 61000-3-2',
+                // Cybersecurity Standards
+                'IEC 62443', 'ISO 27001', 'ETSI EN 303 645', 'UL 2900', 'ISO 27701',
+                // Quality & Environment
+                'ISO 9001', 'ISO 14001', 'ISO 45001', 'ISO 17025', 'ISO 14067',
+                // Chemical Testing
+                'IEC 62321', 'EPA 3052', 'EPA 3051A', 'ISO 17075'
+            ],
+            legislations: [
+                // EU Regulations
+                'RED 2014/53/EU', 'LVD 2014/35/EU', 'EMC 2014/30/EU', 'RoHS 2011/65/EU',
+                'REACH 1907/2006', 'WEEE 2012/19/EU', 'GPSR 2023/988', 'CRA 2024',
+                'EU Battery Reg', 'Ecodesign ESPR', 'EU AI Act', 'EU PPWR',
+                // US Regulations
+                'FCC Part 15', 'FCC Part 18', 'CPSIA', 'CA Prop 65', 'TSCA', 'EPA RCRA',
+                // South Korea
+                'KC Safety Act', 'K-REACH', 'Korea RRA', 'Korea EPR Act', 'KCC EMC',
+                // Brazil
+                'ANATEL Res 715', 'INMETRO Ordinance', 'CONAMA 401', 'Brazil EPR Law', 'IBAMA'
+            ],
+            markings: [
+                // EU & UK
+                'CE', 'UKCA', 'GS Mark', 'TUV',
+                // US & Americas
+                'FCC', 'UL Listed', 'ETL', 'CSA', 'INMETRO', 'NOM',
+                // Asia Pacific
+                'KC', 'KCC', 'ANATEL', 'CCC', 'PSE', 'BSMI',
+                // Other
+                'EAC', 'NRRA', 'BIS'
+            ],
+            requirements: [
+                'DoC', 'Tech File', 'Risk Assessment', 'Test Report', 'User Manual',
+                'Label Design', 'Traceability', 'QMS Audit', 'Supply Chain Due Diligence',
+                'Material Declaration', 'SCIP Database', 'EPR Registration', 'Take-back Program',
+                'Recycling Info', 'Battery Label', 'Energy Label', 'Packaging Compliance',
+                'Chemical Testing', 'EMC Testing', 'Safety Testing', 'Cybersecurity Audit',
+                'Notified Body', 'Self-Declaration', 'Type Examination', 'Market Surveillance'
+            ]
+        };
+
+        // Enemy flags (country flags)
+        const FLAGS = [
+            { name: 'EU', color: 0x003399, starColor: 0xFFCC00 },         // European Union
+            { name: 'US', color: 0xBF0A30, stripeColor: 0xFFFFFF },       // United States
+            { name: 'Brazil', color: 0x009739, diamondColor: 0xFEDD00 },  // Brazil
+            { name: 'S.Korea', color: 0xFFFFFF, symbolColor: 0xCD2E3A }   // South Korea
+        ];
+
+        class BootScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'BootScene' });
+            }
+
+            preload() {
+                // Show loading text
+                const loadingText = this.add.text(
+                    this.cameras.main.centerX,
+                    this.cameras.main.centerY,
+                    'INITIALIZING...',
+                    { fontSize: '14px', color: '#10b981', fontFamily: 'Geist Mono' }
+                ).setOrigin(0.5);
+
+                // Load CertMan logo SVG as data URL to avoid CORS issues
+                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#10b981" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
+                const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
+                const svgUrl = URL.createObjectURL(svgBlob);
+                this.load.svg('player', svgUrl, { width: 64, height: 64 });
+
+                // Handle load errors
+                this.load.on('loaderror', (file) => {
+                    console.warn('Failed to load:', file.key);
+                });
+
+                this.load.on('complete', () => {
+                    loadingText.destroy();
+                });
+            }
+
+            create() {
+                // Create player textures (closed and open mouth) for chomping animation
+                this.createPlayerTextures();
+                this.createPlaceholderAssets();
+                this.scene.start('MenuScene');
+            }
+
+            createPlayerTextures() {
+                // Use loaded SVG as base or create fallback
+                const hasLoadedSvg = this.textures.exists('player');
+
+                // Create closed mouth texture (full logo)
+                if (hasLoadedSvg) {
+                    // Copy loaded texture to player_closed
+                    const frame = this.textures.getFrame('player');
+                    const canvas = this.textures.createCanvas('player_closed', frame.width, frame.height);
+                    canvas.draw(0, 0, frame.source.image);
+                    canvas.refresh();
+                } else {
+                    const g = this.make.graphics({ x: 0, y: 0, add: false });
+                    g.fillStyle(0x10b981, 1);
+                    g.beginPath();
+                    g.moveTo(16, 2); g.lineTo(30, 9); g.lineTo(30, 23);
+                    g.lineTo(16, 30); g.lineTo(2, 23); g.lineTo(2, 9);
+                    g.closePath();
+                    g.fillPath();
+                    g.fillStyle(0x0a0a0a, 1);
+                    g.beginPath();
+                    g.moveTo(16, 8); g.lineTo(24, 12); g.lineTo(24, 20);
+                    g.lineTo(16, 24); g.lineTo(8, 20); g.lineTo(8, 12);
+                    g.closePath();
+                    g.fillPath();
+                    g.fillStyle(0x10b981, 1);
+                    g.fillTriangle(16, 16, 8, 12, 8, 20);
+                    g.fillTriangle(16, 16, 16, 8, 8, 12);
+                    g.fillTriangle(16, 16, 8, 20, 16, 24);
+                    g.generateTexture('player_closed', 32, 32);
+                }
+
+                // Create open mouth texture (with wedge cut out on right side)
+                const g2 = this.make.graphics({ x: 0, y: 0, add: false });
+                g2.fillStyle(0x10b981, 1);
+                // Hexagon with mouth opening (wedge cut from right)
+                g2.beginPath();
+                g2.moveTo(16, 2);    // top
+                g2.lineTo(30, 9);    // top-right
+                g2.lineTo(16, 16);   // center (mouth top)
+                g2.lineTo(30, 23);   // bottom-right
+                g2.lineTo(16, 30);   // bottom
+                g2.lineTo(2, 23);    // bottom-left
+                g2.lineTo(2, 9);     // top-left
+                g2.closePath();
+                g2.fillPath();
+                // Inner structure (simplified for open mouth)
+                g2.fillStyle(0x0a0a0a, 1);
+                g2.beginPath();
+                g2.moveTo(16, 8); g2.lineTo(20, 11); g2.lineTo(16, 16);
+                g2.lineTo(20, 21); g2.lineTo(16, 24); g2.lineTo(8, 20); g2.lineTo(8, 12);
+                g2.closePath();
+                g2.fillPath();
+                g2.fillStyle(0x10b981, 1);
+                g2.fillTriangle(16, 16, 8, 12, 8, 20);
+                g2.fillTriangle(16, 16, 16, 8, 8, 12);
+                g2.fillTriangle(16, 16, 8, 20, 16, 24);
+                g2.generateTexture('player_open', 32, 32);
+            }
+
+            createPlaceholderAssets() {
+                // Create textures for each collectible category
+
+                // Compliance Elements - vibrant green
+                const gStd = this.make.graphics({ x: 0, y: 0, add: false });
+                gStd.fillStyle(0x141414, 1);
+                gStd.fillRect(2, 2, 12, 12);
+                gStd.lineStyle(1, 0x10b981, 0.7);
+                gStd.strokeRect(2, 2, 12, 12);
+                gStd.fillStyle(0x10b981, 0.9);
+                gStd.fillRect(5, 6, 6, 2);
+                gStd.fillRect(5, 9, 4, 2);
+                gStd.generateTexture('dot_standard', 16, 16);
+
+                // Legislations - blue
+                const gLeg = this.make.graphics({ x: 0, y: 0, add: false });
+                gLeg.fillStyle(0x141414, 1);
+                gLeg.fillRect(2, 2, 12, 12);
+                gLeg.lineStyle(1, 0x3b82f6, 0.7);
+                gLeg.strokeRect(2, 2, 12, 12);
+                gLeg.fillStyle(0x3b82f6, 0.9);
+                gLeg.fillRect(5, 5, 6, 1);
+                gLeg.fillRect(5, 7, 6, 1);
+                gLeg.fillRect(5, 9, 6, 1);
+                gLeg.fillRect(5, 11, 4, 1);
+                gLeg.generateTexture('dot_legislation', 16, 16);
+
+                // Markings - amber/gold
+                const gMark = this.make.graphics({ x: 0, y: 0, add: false });
+                gMark.fillStyle(0x141414, 1);
+                gMark.fillCircle(8, 8, 6);
+                gMark.lineStyle(1, 0xf59e0b, 0.8);
+                gMark.strokeCircle(8, 8, 6);
+                gMark.fillStyle(0xf59e0b, 0.9);
+                gMark.fillCircle(8, 8, 3);
+                gMark.generateTexture('dot_marking', 16, 16);
+
+                // Requirements - darker/muted (most common)
+                const gReq = this.make.graphics({ x: 0, y: 0, add: false });
+                gReq.fillStyle(0x1a1a1a, 1);
+                gReq.fillRect(3, 3, 10, 10);
+                gReq.fillStyle(0x444444, 0.8);
+                gReq.fillRect(5, 5, 6, 1);
+                gReq.fillRect(5, 7, 4, 1);
+                gReq.fillRect(5, 9, 5, 1);
+                gReq.generateTexture('dot_requirement', 16, 16);
+
+                // Create flag enemies
+                FLAGS.forEach((flag, i) => {
+                    const g = this.make.graphics({ x: 0, y: 0, add: false });
+
+                    // Base rectangle
+                    g.fillStyle(flag.color, 1);
+                    g.fillRect(2, 4, 28, 24);
+
+                    // Add distinctive element based on flag
+                    if (flag.name === 'EU') {
+                        // EU stars circle
+                        g.fillStyle(flag.starColor, 1);
+                        for (let j = 0; j < 8; j++) {
+                            const angle = (j / 8) * Math.PI * 2;
+                            const x = 16 + Math.cos(angle) * 8;
+                            const y = 16 + Math.sin(angle) * 6;
+                            g.fillCircle(x, y, 2);
+                        }
+                    } else if (flag.name === 'US') {
+                        // US stripes
+                        g.fillStyle(flag.stripeColor, 1);
+                        for (let j = 0; j < 4; j++) {
+                            g.fillRect(2, 6 + j * 6, 28, 2);
+                        }
+                        g.fillStyle(0x3C3B6E, 1);
+                        g.fillRect(2, 4, 12, 12);
+                    } else if (flag.name === 'Brazil') {
+                        // Brazil diamond
+                        g.fillStyle(flag.diamondColor, 1);
+                        g.beginPath();
+                        g.moveTo(16, 6);
+                        g.lineTo(28, 16);
+                        g.lineTo(16, 26);
+                        g.lineTo(4, 16);
+                        g.closePath();
+                        g.fillPath();
+                        g.fillStyle(0x002776, 1);
+                        g.fillCircle(16, 16, 6);
+                    } else if (flag.name === 'S.Korea') {
+                        // South Korea yin-yang
+                        g.fillStyle(flag.symbolColor, 1);
+                        g.fillCircle(16, 16, 8);
+                        g.fillStyle(0x0047A0, 1);
+                        g.slice(16, 16, 8, Phaser.Math.DegToRad(90), Phaser.Math.DegToRad(270));
+                        g.fillPath();
+                    }
+
+                    g.generateTexture('flag_' + i, 32, 32);
+                });
+
+                // Create wall texture - gray fill with black border
+                const wallGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+                wallGraphics.fillStyle(0x1a1a1a, 1);
+                wallGraphics.fillRect(0, 0, 32, 32);
+                wallGraphics.lineStyle(1, 0x000000, 1);
+                wallGraphics.strokeRect(1, 1, 30, 30);
+                wallGraphics.generateTexture('wall', 32, 32);
+
+                // Create "update" dot texture - vibrant green cyber look
+                const updateGraphics = this.make.graphics({ x: 0, y: 0, add: false });
+                // Outer glow
+                updateGraphics.fillStyle(0x10b981, 0.3);
+                updateGraphics.fillCircle(12, 12, 11);
+                // Middle ring
+                updateGraphics.fillStyle(0x10b981, 0.6);
+                updateGraphics.fillCircle(12, 12, 8);
+                // Inner core
+                updateGraphics.fillStyle(0x10b981, 1);
+                updateGraphics.fillCircle(12, 12, 5);
+                // Bright center
+                updateGraphics.fillStyle(0xFFFFFF, 1);
+                updateGraphics.fillCircle(12, 12, 2);
+                updateGraphics.generateTexture('update_dot', 24, 24);
+            }
+        }
+
+        class MenuScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'MenuScene' });
+            }
+
+            create() {
+                const centerX = this.cameras.main.centerX;
+                const centerY = this.cameras.main.centerY;
+
+                // Initialize sound on first real user gesture (mousemove is not a
+                // valid activation gesture — the AudioContext would stay suspended)
+                const initSound = () => {
+                    if (soundManager.initialized) return;
+                    soundManager.init();
+                    soundManager.playSpaceHero();
+                    ['keydown', 'click', 'touchstart', 'mousedown'].forEach(evt => {
+                        document.removeEventListener(evt, initSound);
+                    });
+                };
+                ['keydown', 'click', 'touchstart', 'mousedown'].forEach(evt => {
+                    document.addEventListener(evt, initSound, { once: true });
+                });
+
+                // Keep SPACE from scrolling the page
+                this.input.keyboard.addCapture('SPACE');
+
+                // Main title with entrance animation
+                const mainTitle = this.add.text(centerX, centerY - 120, 'COMPLIANCE-MAN™', {
+                    fontSize: '64px',
+                    fontFamily: 'Honk'
+                }).setOrigin(0.5).setScale(0);
+
+                this.tweens.add({
+                    targets: mainTitle,
+                    scale: 1,
+                    duration: 500,
+                    ease: 'Back.easeOut'
+                });
+
+                // Subtle breathing animation
+                this.tweens.add({
+                    targets: mainTitle,
+                    scale: { from: 1, to: 1.02 },
+                    duration: 2000,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut',
+                    delay: 500
+                });
+
+                // Tagline
+                const tagline = this.add.text(centerX, centerY - 55, 'COMPLY OR PAY!', {
+                    fontSize: '24px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#10b981',
+                    letterSpacing: '4px'
+                }).setOrigin(0.5).setAlpha(0);
+
+                this.tweens.add({
+                    targets: tagline,
+                    alpha: 1,
+                    y: centerY - 60,
+                    duration: 400,
+                    delay: 300
+                });
+
+                // Simple divider
+                const divider = this.add.rectangle(centerX, centerY - 30, 100, 2, 0x10b981).setAlpha(0);
+                this.tweens.add({
+                    targets: divider,
+                    alpha: 0.6,
+                    duration: 400,
+                    delay: 500
+                });
+
+                // Instructions - clean and simple
+                const inst1 = this.add.text(centerX, centerY + 15, '◆ Collect compliance elements and updates', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#10b981'
+                }).setOrigin(0.5).setAlpha(0);
+
+                const inst2 = this.add.text(centerX, centerY + 50, '☠ Avoid regulatory auditors', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist',
+                    color: '#ef4444'
+                }).setOrigin(0.5).setAlpha(0);
+
+                this.tweens.add({
+                    targets: [inst1, inst2],
+                    alpha: 1,
+                    duration: 400,
+                    delay: 600
+                });
+
+                // Controls
+                const controls = this.add.text(centerX, centerY + 95, 'WASD or ARROWS to move', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#444444'
+                }).setOrigin(0.5).setAlpha(0);
+
+                this.tweens.add({
+                    targets: controls,
+                    alpha: 1,
+                    duration: 400,
+                    delay: 700
+                });
+
+                // Start prompt with pulse
+                const startButton = this.add.text(centerX, centerY + 150, '[ CLICK OR PRESS SPACE TO START ]', {
+                    fontSize: '20px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#10b981'
+                }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
+
+                this.tweens.add({
+                    targets: startButton,
+                    alpha: 1,
+                    duration: 400,
+                    delay: 900,
+                    onComplete: () => {
+                        this.tweens.add({
+                            targets: startButton,
+                            alpha: 0.4,
+                            duration: 700,
+                            yoyo: true,
+                            repeat: -1
+                        });
+                    }
+                });
+
+                // Start game on space or click
+                const startGame = () => {
+                    soundManager.init();
+                    soundManager.playStartGame();
+                    this.scene.start('GameScene');
+                };
+                this.input.keyboard.once('keydown-SPACE', startGame);
+                startButton.once('pointerdown', startGame);
+            }
+        }
+
+        class GameScene extends Phaser.Scene {
+            constructor() {
+                super({ key: 'GameScene' });
+            }
+
+            init() {
+                this.score = 0;
+                this.lives = 3;
+                this.totalDots = 0;
+                this.collectedDots = 0;
+                this.initialDots = 0;
+                this.collectedInitialDots = 0;
+                this.gameOver = false;
+                this.invulnerable = false;
+                this.currentDirection = null;
+                this.inputDirection = null;
+                this.validSpawnPositions = [];
+                this.updateDots = [];
+                this.activeUpdates = 0; // Counter for active update dots
+                this.totalUpdatesAdded = 0; // Total updates spawned this game (max 15)
+                // Chomping animation state
+                this.mouthOpen = false;
+                this.chompTimer = 0;
+                this.chompInterval = 100; // ms between chomp frames
+                // Category counts
+                this.counts = {
+                    standards: 0,
+                    legislations: 0,
+                    markings: 0,
+                    requirements: 0
+                };
+            }
+
+            create() {
+                // Start/continue the background music (loops automatically)
+                soundManager.init();
+                soundManager.playSpaceHero();
+
+                // Reset sidebar counts
+                this.updateSidebarCounts();
+
+                // Create maze
+                this.createMaze();
+
+                // Create collectibles
+                this.createCollectibles();
+
+                // Create player
+                this.createPlayer();
+
+                // Create enemies
+                this.createEnemies();
+
+                // Create UI
+                this.createUI();
+
+                // Setup input
+                this.input.keyboard.addCapture('SPACE');
+                this.cursors = this.input.keyboard.createCursorKeys();
+                this.wasd = this.input.keyboard.addKeys({
+                    up: Phaser.Input.Keyboard.KeyCodes.W,
+                    down: Phaser.Input.Keyboard.KeyCodes.S,
+                    left: Phaser.Input.Keyboard.KeyCodes.A,
+                    right: Phaser.Input.Keyboard.KeyCodes.D
+                });
+
+                // Collisions
+                this.physics.add.collider(this.player, this.walls);
+                this.physics.add.collider(this.enemies, this.walls);
+                this.physics.add.overlap(this.player, this.dots, this.collectDot, null, this);
+                this.physics.add.overlap(this.player, this.enemies, this.hitEnemy, null, this);
+            }
+
+            createMaze() {
+                this.walls = this.physics.add.staticGroup();
+
+                for (let y = 0; y < MAZE_HEIGHT; y++) {
+                    for (let x = 0; x < MAZE_WIDTH; x++) {
+                        if (MAZE[y][x] === 1) {
+                            const wall = this.walls.create(
+                                x * TILE_SIZE + TILE_SIZE / 2,
+                                y * TILE_SIZE + TILE_SIZE / 2,
+                                'wall'
+                            );
+                            wall.setDisplaySize(TILE_SIZE, TILE_SIZE);
+                        }
+                    }
+                }
+            }
+
+            createCollectibles() {
+                this.dots = this.physics.add.group();
+
+                // Distribution: 50% requirements, 20% compliance elements, 20% legislations, 10% markings
+                const getRandomCategory = () => {
+                    const rand = Math.random();
+                    if (rand < 0.50) return 'requirements';
+                    if (rand < 0.70) return 'standards';
+                    if (rand < 0.90) return 'legislations';
+                    return 'markings';
+                };
+
+                const categoryIndices = {
+                    standards: 0,
+                    legislations: 0,
+                    markings: 0,
+                    requirements: 0
+                };
+
+                for (let y = 0; y < MAZE_HEIGHT; y++) {
+                    for (let x = 0; x < MAZE_WIDTH; x++) {
+                        if (MAZE[y][x] === 2) {
+                            // Store valid spawn positions for later updates
+                            this.validSpawnPositions.push({ x, y });
+
+                            const category = getRandomCategory();
+                            const items = COLLECTIBLES[category];
+                            const itemIndex = categoryIndices[category] % items.length;
+                            categoryIndices[category]++;
+
+                            const textureMap = {
+                                standards: 'dot_standard',
+                                legislations: 'dot_legislation',
+                                markings: 'dot_marking',
+                                requirements: 'dot_requirement'
+                            };
+
+                            const dot = this.dots.create(
+                                x * TILE_SIZE + TILE_SIZE / 2,
+                                y * TILE_SIZE + TILE_SIZE / 2,
+                                textureMap[category]
+                            );
+                            dot.itemName = items[itemIndex];
+                            dot.category = category;
+                            dot.setDisplaySize(category === 'requirements' ? 12 : 14, category === 'requirements' ? 12 : 14);
+                            dot.isUpdate = false;
+                            this.totalDots++;
+                            this.initialDots++;
+                        }
+                    }
+                }
+
+                // Start spawning update dots periodically
+                this.time.addEvent({
+                    delay: 5000, // Every 5 seconds
+                    callback: this.spawnUpdateDot,
+                    callbackScope: this,
+                    loop: true
+                });
+            }
+
+            spawnUpdateDot() {
+                if (this.gameOver) return;
+                if (this.totalUpdatesAdded >= 15) return; // Max 15 updates per game
+
+                // Find positions not currently occupied by dots
+                const occupiedPositions = new Set();
+                this.dots.getChildren().forEach(dot => {
+                    const tileX = Math.floor(dot.x / TILE_SIZE);
+                    const tileY = Math.floor(dot.y / TILE_SIZE);
+                    occupiedPositions.add(`${tileX},${tileY}`);
+                });
+
+                const availablePositions = this.validSpawnPositions.filter(pos =>
+                    !occupiedPositions.has(`${pos.x},${pos.y}`)
+                );
+
+                if (availablePositions.length === 0) return;
+
+                // Pick random position
+                const pos = Phaser.Math.RND.pick(availablePositions);
+
+                // Create update dot
+                const updateDot = this.dots.create(
+                    pos.x * TILE_SIZE + TILE_SIZE / 2,
+                    pos.y * TILE_SIZE + TILE_SIZE / 2,
+                    'update_dot'
+                );
+                updateDot.itemName = 'UPDATE';
+                updateDot.category = 'update';
+                updateDot.setDisplaySize(20, 20);
+                updateDot.isUpdate = true;
+                this.totalDots++;
+
+                // Add "UPDATE" label above the dot - green theme
+                const label = this.add.text(updateDot.x, updateDot.y - 18, 'UPDATE', {
+                    fontSize: '9px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#10b981'
+                }).setOrigin(0.5);
+                updateDot.label = label;
+
+                // Pulsing glow animation for the dot
+                this.tweens.add({
+                    targets: updateDot,
+                    alpha: 0.6,
+                    scaleX: 1.3,
+                    scaleY: 1.3,
+                    duration: 600,
+                    ease: 'Sine.easeInOut',
+                    yoyo: true,
+                    repeat: -1
+                });
+
+                // Pulsing animation for the label
+                this.tweens.add({
+                    targets: label,
+                    alpha: 0.4,
+                    duration: 600,
+                    ease: 'Sine.easeInOut',
+                    yoyo: true,
+                    repeat: -1
+                });
+
+                // Increment updates counter
+                this.activeUpdates++;
+                this.totalUpdatesAdded++;
+                this.updateUpdatesText();
+
+                // Show alert if too many untaken updates
+                this.checkUpdateAlert();
+            }
+
+            checkUpdateAlert() {
+                if (this.activeUpdates > 5) {
+                    if (!this.updateAlert.visible) {
+                        // Start countdown
+                        this.updateCountdown = 10;
+                        this.updateAlertText();
+                        this.updateAlert.setVisible(true);
+                        soundManager.playAlarm();
+
+                        // Flash animation
+                        if (this.alertFlashTween) this.alertFlashTween.stop();
+                        this.alertFlashTween = this.tweens.add({
+                            targets: this.updateAlert,
+                            alpha: 0.3,
+                            duration: 300,
+                            ease: 'Sine.easeInOut',
+                            yoyo: true,
+                            repeat: -1
+                        });
+
+                        // Start countdown timer
+                        if (this.countdownEvent) this.countdownEvent.remove();
+                        this.countdownEvent = this.time.addEvent({
+                            delay: 1000,
+                            callback: this.tickCountdown,
+                            callbackScope: this,
+                            repeat: 9
+                        });
+                    }
+                } else {
+                    this.clearAlert();
+                }
+            }
+
+            clearAlert() {
+                // Stop countdown and hide alert
+                if (this.countdownEvent) {
+                    this.countdownEvent.remove();
+                    this.countdownEvent = null;
+                }
+                this.updateAlert.setVisible(false);
+                this.updateAlert.setAlpha(1);
+                if (this.alertFlashTween) {
+                    this.alertFlashTween.stop();
+                    this.alertFlashTween = null;
+                }
+                this.updateCountdown = 10;
+            }
+
+            updateUpdatesText() {
+                this.updatesText.setText('UPDATES: ' + this.activeUpdates + '/5');
+                this.updatesText.setColor(this.activeUpdates > 5 ? '#ef4444' : '#10b981');
+            }
+
+            updateAlertText() {
+                this.updateAlert.setText(
+                    '⚠ TOO MANY UPDATES PENDING (' + this.activeUpdates + '/5) ⚠\n' +
+                    'COLLECT THEM OR LOSE A PRODUCT IN ' + this.updateCountdown + 's'
+                );
+            }
+
+            tickCountdown() {
+                if (this.gameOver) return;
+                this.updateCountdown--;
+                if (this.updateCountdown <= 0) {
+                    // Time's up - lose a life
+                    this.lives--;
+                    this.livesText.setText('PRODUCTS: ' + this.lives);
+                    this.cameras.main.flash(200, 153, 27, 27);
+                    soundManager.playHit();
+
+                    if (this.lives <= 0) {
+                        this.loseGame(null);
+                    } else {
+                        // Say why the player just got punished
+                        this.showTimeoutPenalty();
+                        // Reset countdown
+                        this.updateCountdown = 10;
+                        this.updateAlertText();
+                        this.countdownEvent = this.time.addEvent({
+                            delay: 1000,
+                            callback: this.tickCountdown,
+                            callbackScope: this,
+                            repeat: 9
+                        });
+                    }
+                } else {
+                    this.updateAlertText();
+                }
+            }
+
+            showTimeoutPenalty() {
+                const centerX = this.cameras.main.centerX;
+                const centerY = this.cameras.main.centerY;
+
+                const msg = this.add.text(centerX, centerY - 40,
+                    '⚠ UPDATES IGNORED — PRODUCT WITHDRAWN ⚠\nPRODUCTS REMAINING: ' + this.lives, {
+                    fontSize: '15px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#FFFFFF',
+                    backgroundColor: '#991b1b',
+                    align: 'center',
+                    padding: { x: 14, y: 10 }
+                }).setOrigin(0.5).setDepth(30).setScale(0);
+
+                this.tweens.add({
+                    targets: msg,
+                    scale: 1,
+                    duration: 200,
+                    ease: 'Back.easeOut'
+                });
+                this.tweens.add({
+                    targets: msg,
+                    alpha: 0,
+                    delay: 2200,
+                    duration: 400,
+                    onComplete: () => msg.destroy()
+                });
+            }
+
+            createPlayer() {
+                // Find player spawn position
+                let spawnX = 9, spawnY = 16;
+                for (let y = 0; y < MAZE_HEIGHT; y++) {
+                    for (let x = 0; x < MAZE_WIDTH; x++) {
+                        if (MAZE[y][x] === 4) {
+                            spawnX = x;
+                            spawnY = y;
+                        }
+                    }
+                }
+
+                this.player = this.physics.add.sprite(
+                    spawnX * TILE_SIZE + TILE_SIZE / 2,
+                    spawnY * TILE_SIZE + TILE_SIZE / 2,
+                    'player_closed'
+                );
+                this.player.setDisplaySize(26, 26);
+                this.player.setDepth(10); // Ensure player renders on top
+                this.playerSpawnX = spawnX * TILE_SIZE + TILE_SIZE / 2;
+                this.playerSpawnY = spawnY * TILE_SIZE + TILE_SIZE / 2;
+                this.playerRotation = 0; // facing right
+            }
+
+            createEnemies() {
+                this.enemies = this.physics.add.group();
+
+                // Spawn enemies at different corners of the maze on valid path tiles
+                const spawnPoints = [
+                    { x: 1, y: 1, dir: 'right' },   // Top-left
+                    { x: 17, y: 1, dir: 'left' },   // Top-right
+                    { x: 1, y: 20, dir: 'right' },  // Bottom-left
+                    { x: 17, y: 20, dir: 'left' }   // Bottom-right
+                ];
+
+                for (let i = 0; i < 4; i++) {
+                    const spawn = spawnPoints[i];
+                    const enemy = this.enemies.create(
+                        spawn.x * TILE_SIZE + TILE_SIZE / 2,
+                        spawn.y * TILE_SIZE + TILE_SIZE / 2,
+                        'flag_' + i
+                    );
+                    enemy.setDisplaySize(28, 28);
+                    enemy.flagName = FLAGS[i].name;
+                    enemy.direction = spawn.dir;
+                    enemy.spawnX = spawn.x * TILE_SIZE + TILE_SIZE / 2;
+                    enemy.spawnY = spawn.y * TILE_SIZE + TILE_SIZE / 2;
+                }
+            }
+
+            createUI() {
+                // Score
+                this.scoreText = this.add.text(10, MAZE_HEIGHT * TILE_SIZE + 8, 'SCORE: 0', {
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono',
+                    color: '#10b981'
+                });
+
+                // Products
+                this.livesText = this.add.text(MAZE_WIDTH * TILE_SIZE - 110, MAZE_HEIGHT * TILE_SIZE + 8, 'PRODUCTS: 3', {
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono',
+                    color: '#f5f5f5'
+                });
+
+                // Progress
+                this.progressText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 8, '0/' + this.totalDots, {
+                    fontSize: '11px',
+                    fontFamily: 'Geist Mono',
+                    color: '#666666'
+                }).setOrigin(0.5, 0);
+
+                // Updates counter (max 5 pending before penalty)
+                this.updatesText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 22, 'UPDATES: 0/5', {
+                    fontSize: '10px',
+                    fontFamily: 'Geist Mono',
+                    color: '#10b981'
+                }).setOrigin(0.5, 0);
+
+                // Update alert with countdown (hidden by default) - positioned near top of game
+                this.updateAlert = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
+                    fontSize: '11px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#FFFFFF',
+                    backgroundColor: '#991b1b',
+                    align: 'center',
+                    padding: { x: 10, y: 6 }
+                }).setOrigin(0.5, 0.5).setDepth(100);
+                this.updateAlert.setVisible(false);
+                this.updateCountdown = 10;
+                this.countdownEvent = null;
+            }
+
+            update(time, delta) {
+                if (this.gameOver) return;
+
+                // Handle input
+                this.handleInput();
+
+                // Move player with target-based movement
+                this.movePlayer();
+
+                // Animate player chomping and rotation
+                this.animatePlayer(delta);
+
+                // Move enemies
+                this.moveEnemies();
+            }
+
+            animatePlayer(delta) {
+                // Update rotation based on direction
+                const targetRotations = {
+                    'right': 0,
+                    'down': Math.PI / 2,
+                    'left': Math.PI,
+                    'up': -Math.PI / 2
+                };
+
+                if (this.currentDirection) {
+                    this.playerRotation = targetRotations[this.currentDirection];
+                    this.player.setRotation(this.playerRotation);
+
+                    // Chomping animation while moving
+                    this.chompTimer += delta;
+                    if (this.chompTimer >= this.chompInterval) {
+                        this.chompTimer = 0;
+                        this.mouthOpen = !this.mouthOpen;
+                        this.player.setTexture(this.mouthOpen ? 'player_open' : 'player_closed');
+                    }
+                } else {
+                    // Stop with mouth closed when not moving
+                    if (this.mouthOpen) {
+                        this.mouthOpen = false;
+                        this.player.setTexture('player_closed');
+                    }
+                }
+            }
+
+            handleInput() {
+                // Capture current key state - only set if key is down
+                if (this.cursors.left.isDown || this.wasd.left.isDown) {
+                    this.inputDirection = 'left';
+                } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
+                    this.inputDirection = 'right';
+                } else if (this.cursors.up.isDown || this.wasd.up.isDown) {
+                    this.inputDirection = 'up';
+                } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
+                    this.inputDirection = 'down';
+                } else {
+                    this.inputDirection = null;
+                }
+            }
+
+            movePlayer() {
+                // Get current tile position (clamped while crossing the tunnel edges)
+                const tileX = Phaser.Math.Clamp(Math.floor(this.player.x / TILE_SIZE), 0, MAZE_WIDTH - 1);
+                const tileY = Phaser.Math.Clamp(Math.floor(this.player.y / TILE_SIZE), 0, MAZE_HEIGHT - 1);
+                const tileCenterX = tileX * TILE_SIZE + TILE_SIZE / 2;
+                const tileCenterY = tileY * TILE_SIZE + TILE_SIZE / 2;
+
+                // Distance to tile center
+                const distX = Math.abs(this.player.x - tileCenterX);
+                const distY = Math.abs(this.player.y - tileCenterY);
+
+                // More forgiving center detection
+                const threshold = 6;
+                const nearCenterX = distX < threshold;
+                const nearCenterY = distY < threshold;
+
+                // Try to change direction when near center
+                if (nearCenterX && nearCenterY && this.inputDirection) {
+                    if (this.canMoveInDirection(tileX, tileY, this.inputDirection)) {
+                        // Snap to center when changing direction
+                        this.player.x = tileCenterX;
+                        this.player.y = tileCenterY;
+                        this.currentDirection = this.inputDirection;
+                    }
+                }
+
+                // Check if current direction is still valid
+                if (this.currentDirection && nearCenterX && nearCenterY) {
+                    if (!this.canMoveInDirection(tileX, tileY, this.currentDirection)) {
+                        this.player.x = tileCenterX;
+                        this.player.y = tileCenterY;
+                        this.player.setVelocity(0);
+                        this.currentDirection = null;
+                        return;
+                    }
+                }
+
+                // Apply velocity based on current direction
+                if (this.currentDirection) {
+                    switch (this.currentDirection) {
+                        case 'left':
+                            this.player.setVelocity(-PLAYER_SPEED, 0);
+                            break;
+                        case 'right':
+                            this.player.setVelocity(PLAYER_SPEED, 0);
+                            break;
+                        case 'up':
+                            this.player.setVelocity(0, -PLAYER_SPEED);
+                            break;
+                        case 'down':
+                            this.player.setVelocity(0, PLAYER_SPEED);
+                            break;
+                    }
+                } else {
+                    this.player.setVelocity(0);
+                }
+
+                // Wrap through the side tunnels
+                const worldWidth = MAZE_WIDTH * TILE_SIZE;
+                if (this.player.x < -TILE_SIZE / 2) {
+                    this.player.x = worldWidth + TILE_SIZE / 2;
+                } else if (this.player.x > worldWidth + TILE_SIZE / 2) {
+                    this.player.x = -TILE_SIZE / 2;
+                }
+            }
+
+            canMoveInDirection(tileX, tileY, direction) {
+                let checkX = tileX;
+                let checkY = tileY;
+
+                switch (direction) {
+                    case 'left': checkX--; break;
+                    case 'right': checkX++; break;
+                    case 'up': checkY--; break;
+                    case 'down': checkY++; break;
+                }
+
+                // Check vertical bounds
+                if (checkY < 0 || checkY >= MAZE_HEIGHT) {
+                    return false;
+                }
+
+                // Wrap horizontally so tunnel rows connect the left and right edges
+                checkX = ((checkX % MAZE_WIDTH) + MAZE_WIDTH) % MAZE_WIDTH;
+
+                // Check if wall
+                return MAZE[checkY][checkX] !== 1;
+            }
+
+            canMove(sprite, direction) {
+                const tileX = Math.floor(sprite.x / TILE_SIZE);
+                const tileY = Math.floor(sprite.y / TILE_SIZE);
+                return this.canMoveInDirection(tileX, tileY, direction);
+            }
+
+            moveEnemies() {
+                const speed = ENEMY_SPEED;
+                this.enemies.getChildren().forEach(enemy => {
+                    // Wrap through the side tunnels
+                    const worldWidth = MAZE_WIDTH * TILE_SIZE;
+                    if (enemy.x < -TILE_SIZE / 2) {
+                        enemy.x = worldWidth + TILE_SIZE / 2;
+                    } else if (enemy.x > worldWidth + TILE_SIZE / 2) {
+                        enemy.x = -TILE_SIZE / 2;
+                    }
+
+                    // Recover if somehow pushed out of vertical bounds
+                    if (enemy.y < TILE_SIZE / 2 || enemy.y > MAZE_HEIGHT * TILE_SIZE - TILE_SIZE / 2) {
+                        const tileX = Math.max(1, Math.min(MAZE_WIDTH - 2, Math.floor(enemy.x / TILE_SIZE)));
+                        const tileY = Math.max(1, Math.min(MAZE_HEIGHT - 2, Math.floor(enemy.y / TILE_SIZE)));
+                        enemy.x = tileX * TILE_SIZE + TILE_SIZE / 2;
+                        enemy.y = tileY * TILE_SIZE + TILE_SIZE / 2;
+                        this.changeEnemyDirection(enemy);
+                    }
+
+                    // Check if enemy is stuck (velocity blocked by wall)
+                    const isStuck = enemy.body &&
+                        Math.abs(enemy.body.velocity.x) < 5 &&
+                        Math.abs(enemy.body.velocity.y) < 5;
+
+                    if (isStuck) {
+                        // Snap to nearest tile center and change direction
+                        const tileX = Math.round((enemy.x - TILE_SIZE / 2) / TILE_SIZE);
+                        const tileY = Math.round((enemy.y - TILE_SIZE / 2) / TILE_SIZE);
+                        enemy.x = tileX * TILE_SIZE + TILE_SIZE / 2;
+                        enemy.y = tileY * TILE_SIZE + TILE_SIZE / 2;
+                        this.changeEnemyDirection(enemy);
+                    }
+
+                    // Get current tile center
+                    const tileX = Math.floor(enemy.x / TILE_SIZE);
+                    const tileY = Math.floor(enemy.y / TILE_SIZE);
+                    const centerX = tileX * TILE_SIZE + TILE_SIZE / 2;
+                    const centerY = tileY * TILE_SIZE + TILE_SIZE / 2;
+
+                    // Check if near tile center (within 4 pixels)
+                    const nearCenter = Math.abs(enemy.x - centerX) < 4 && Math.abs(enemy.y - centerY) < 4;
+
+                    if (nearCenter) {
+                        // Check if we need to change direction
+                        if (!this.canMove(enemy, enemy.direction)) {
+                            this.changeEnemyDirection(enemy);
+                        } else {
+                            // At intersection, maybe change direction
+                            const validDirs = ['left', 'right', 'up', 'down'].filter(d => this.canMove(enemy, d));
+                            if (validDirs.length > 2 && Math.random() < 0.01) {
+                                this.changeEnemyDirection(enemy);
+                            }
+                        }
+                    }
+
+                    // Set velocity based on direction
+                    switch (enemy.direction) {
+                        case 'left': enemy.setVelocity(-speed, 0); break;
+                        case 'right': enemy.setVelocity(speed, 0); break;
+                        case 'up': enemy.setVelocity(0, -speed); break;
+                        case 'down': enemy.setVelocity(0, speed); break;
+                        default: enemy.setVelocity(0, 0);
+                    }
+                });
+            }
+
+            changeEnemyDirection(enemy, forceRandom = false) {
+                const directions = ['left', 'right', 'up', 'down'];
+                const validDirections = directions.filter(dir => this.canMove(enemy, dir));
+
+                if (validDirections.length === 0) return;
+
+                const opposite = {
+                    'left': 'right',
+                    'right': 'left',
+                    'up': 'down',
+                    'down': 'up'
+                };
+
+                // Don't go back unless it's the only option
+                let candidates = validDirections.filter(dir => dir !== opposite[enemy.direction]);
+                if (candidates.length === 0) candidates = validDirections;
+
+                // 50% chance to bias toward player (simple chase behavior)
+                if (!forceRandom && Math.random() < 0.5 && this.player) {
+                    const dx = this.player.x - enemy.x;
+                    const dy = this.player.y - enemy.y;
+
+                    // Score directions by how much they move toward player
+                    const scores = candidates.map(dir => {
+                        let score = Math.random() * 0.5; // Base randomness
+                        if (dir === 'left' && dx < 0) score += 1;
+                        if (dir === 'right' && dx > 0) score += 1;
+                        if (dir === 'up' && dy < 0) score += 1;
+                        if (dir === 'down' && dy > 0) score += 1;
+                        return { dir, score };
+                    });
+
+                    scores.sort((a, b) => b.score - a.score);
+                    enemy.direction = scores[0].dir;
+                } else {
+                    enemy.direction = Phaser.Math.RND.pick(candidates);
+                }
+            }
+
+            collectDot(player, dot) {
+                // Check if it's an update dot (gives more points)
+                const isUpdate = dot.isUpdate;
+                const category = dot.category;
+
+                // Points based on category
+                const pointsMap = {
+                    standards: 20,
+                    legislations: 20,
+                    markings: 15,
+                    requirements: 5
+                };
+                const points = isUpdate ? 50 : (pointsMap[category] || 10);
+
+                // Colors based on category
+                const colorMap = {
+                    standards: '#34d399',
+                    legislations: '#60a5fa',
+                    markings: '#fbbf24',
+                    requirements: '#9ca3af'
+                };
+                const textColor = isUpdate ? '#10b981' : (colorMap[category] || '#f5f5f5');
+
+                // Play appropriate sound effect
+                if (isUpdate) {
+                    soundManager.playUpdateCollect();
+                    // Decrement updates counter
+                    this.activeUpdates--;
+                    this.updateUpdatesText();
+                    this.checkUpdateAlert();
+                } else {
+                    soundManager.playChomp();
+                    // Update category count
+                    if (category && this.counts[category] !== undefined) {
+                        this.counts[category]++;
+                        this.updateSidebarCounts();
+                    }
+                }
+
+                // Destroy label if it's an update dot
+                if (dot.label) {
+                    dot.label.destroy();
+                }
+
+                const dotX = dot.x;
+                const dotY = dot.y;
+                const itemName = dot.itemName || 'ITEM';
+
+                dot.destroy();
+                this.score += points;
+                this.scoreText.setText('SCORE: ' + this.score);
+                this.collectedDots++;
+                this.progressText.setText(this.collectedDots + '/' + this.totalDots);
+
+                // Show collected item name (shorter for requirements)
+                const isReq = category === 'requirements';
+                const displayName = isUpdate ? 'UPDATE +50' : (isReq ? '+' + points : itemName + ' +' + points);
+                const nameText = this.add.text(dotX, dotY - 22, displayName, {
+                    fontSize: isReq ? '11px' : '13px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: textColor,
+                    backgroundColor: 'rgba(10, 10, 10, 0.85)',
+                    padding: { x: 6, y: 3 }
+                }).setOrigin(0.5).setDepth(15).setScale(0.6);
+
+                // Keep long names fully on screen near the maze edges
+                nameText.x = Phaser.Math.Clamp(dotX, nameText.width / 2 + 4, MAZE_WIDTH * TILE_SIZE - nameText.width / 2 - 4);
+
+                // If the previous label still overlaps this one, replace it so text stays readable
+                if (this.lastLabel && this.lastLabel.active) {
+                    const overlaps = Math.abs(this.lastLabel.x - nameText.x) < (this.lastLabel.width + nameText.width) / 2 &&
+                        Math.abs(this.lastLabel.y - nameText.y) < 24;
+                    if (overlaps) {
+                        this.tweens.killTweensOf(this.lastLabel);
+                        this.lastLabel.destroy();
+                    }
+                }
+                this.lastLabel = nameText;
+
+                // Pop in, drift up, hold, then fade
+                this.tweens.add({
+                    targets: nameText,
+                    scale: 1,
+                    duration: 120,
+                    ease: 'Back.easeOut'
+                });
+                this.tweens.add({
+                    targets: nameText,
+                    y: dotY - 52,
+                    duration: 1100,
+                    ease: 'Cubic.easeOut'
+                });
+                this.tweens.add({
+                    targets: nameText,
+                    alpha: 0,
+                    delay: 650,
+                    duration: 450,
+                    onComplete: () => nameText.destroy()
+                });
+
+                // Track initial dots collected (not updates)
+                if (!isUpdate) {
+                    this.collectedInitialDots++;
+                    // Win when all initial dots are collected
+                    if (this.collectedInitialDots >= this.initialDots) {
+                        this.winGame();
+                    }
+                }
+            }
+
+            updateSidebarCounts() {
+                // Update the HTML sidebar counts
+                const stdEl = document.getElementById('standards-count');
+                const legEl = document.getElementById('legislations-count');
+                const markEl = document.getElementById('markings-count');
+                const reqEl = document.getElementById('requirements-count');
+
+                if (stdEl) stdEl.textContent = this.counts.standards;
+                if (legEl) legEl.textContent = this.counts.legislations;
+                if (markEl) markEl.textContent = this.counts.markings;
+                if (reqEl) reqEl.textContent = this.counts.requirements;
+            }
+
+            hitEnemy(player, enemy) {
+                if (this.gameOver || this.invulnerable) return;
+                this.invulnerable = true;
+
+                // Play hit sound
+                soundManager.playHit();
+
+                this.lives--;
+                this.livesText.setText('PRODUCTS: ' + this.lives);
+
+                // Flash screen
+                this.cameras.main.flash(200, 153, 27, 27);
+
+                if (this.lives <= 0) {
+                    this.loseGame(enemy);
+                } else {
+                    // Pause game temporarily
+                    this.physics.pause();
+
+                    // Show "Caught by" message
+                    const centerX = this.cameras.main.centerX;
+                    const centerY = this.cameras.main.centerY;
+
+                    const overlay = this.add.rectangle(centerX, centerY,
+                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.85).setDepth(20);
+
+                    // Warning text
+                    const warningText = this.add.text(centerX, centerY - 50, '⚠ AUDIT VIOLATION ⚠', {
+                        fontSize: '14px',
+                        fontFamily: 'Geist Mono',
+                        color: '#fbbf24'
+                    }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                    const caughtText = this.add.text(centerX, centerY, 'CAUGHT BY ' + enemy.flagName.toUpperCase() + ' AUDITORS', {
+                        fontSize: '28px',
+                        fontFamily: 'Geist Mono',
+                        fontStyle: 'bold',
+                        color: '#ef4444'
+                    }).setOrigin(0.5).setScale(0).setDepth(21);
+
+                    // Lives remaining
+                    const livesText = this.add.text(centerX, centerY + 50, 'PRODUCTS REMAINING: ' + this.lives, {
+                        fontSize: '12px',
+                        fontFamily: 'Geist Mono',
+                        color: '#888888'
+                    }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                    // Dramatic scale-in effect
+                    this.tweens.add({
+                        targets: caughtText,
+                        scale: 1,
+                        duration: 200,
+                        ease: 'Back.easeOut',
+                        onComplete: () => {
+                            // Shake effect
+                            this.tweens.add({
+                                targets: caughtText,
+                                x: centerX + 3,
+                                duration: 50,
+                                yoyo: true,
+                                repeat: 10,
+                                ease: 'Sine.easeInOut',
+                                onComplete: () => {
+                                    caughtText.setX(centerX);
+                                }
+                            });
+                        }
+                    });
+
+                    // Fade in warning and lives text
+                    this.tweens.add({
+                        targets: [warningText, livesText],
+                        alpha: 1,
+                        duration: 300,
+                        delay: 200
+                    });
+
+                    // Screen shake
+                    this.cameras.main.shake(300, 0.01);
+
+                    // After 3 seconds, remove message and continue
+                    this.time.delayedCall(3000, () => {
+                        overlay.destroy();
+                        caughtText.destroy();
+                        warningText.destroy();
+                        livesText.destroy();
+
+                        // Reset player position and state
+                        this.player.setPosition(this.playerSpawnX, this.playerSpawnY);
+                        this.player.setVelocity(0);
+                        this.player.setRotation(0);
+                        this.player.setTexture('player_closed');
+                        this.currentDirection = null;
+                        this.inputDirection = null;
+                        this.mouthOpen = false;
+                        this.playerRotation = 0;
+
+                        // Send enemies back to their corners so they can't camp the spawn
+                        this.enemies.getChildren().forEach(e => {
+                            e.setPosition(e.spawnX, e.spawnY);
+                            e.setVelocity(0);
+                            this.changeEnemyDirection(e);
+                        });
+
+                        // Resume physics
+                        this.physics.resume();
+
+                        // Brief invulnerability
+                        this.player.setAlpha(0.5);
+                        this.time.delayedCall(1500, () => {
+                            this.player.setAlpha(1);
+                            this.invulnerable = false;
+                        });
+                    });
+                }
+            }
+
+            winGame() {
+                this.gameOver = true;
+                this.player.setVelocity(0);
+                this.enemies.getChildren().forEach(e => e.setVelocity(0));
+                this.clearAlert();
+
+                // Calculate penalty for remaining updates
+                const updatePenalty = this.activeUpdates * 100;
+                const finalScore = Math.max(0, this.score - updatePenalty);
+
+                // Play win jingle, then loop the victory fanfare
+                soundManager.stopJingle();
+                soundManager.playWin();
+                this.time.delayedCall(1500, () => {
+                    if (this.gameOver) soundManager.playFanfare();
+                });
+
+                const centerX = this.cameras.main.centerX;
+                const centerY = this.cameras.main.centerY;
+
+                // Overlay with dark theme
+                const overlay = this.add.rectangle(centerX, centerY,
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.92).setDepth(20);
+
+                this.add.text(centerX, centerY - 80, 'COMPLIANCE ACHIEVED', {
+                    fontSize: '24px',
+                    fontFamily: 'Geist',
+                    fontStyle: 'bold',
+                    color: '#10b981'
+                }).setOrigin(0.5).setDepth(21);
+
+                this.add.text(centerX, centerY - 55, 'COMPLIANCE LEVEL: 100%', {
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono',
+                    color: '#10b981'
+                }).setOrigin(0.5).setDepth(21);
+
+                this.add.text(centerX, centerY - 30, 'SCORE: ' + this.score, {
+                    fontSize: '16px',
+                    fontFamily: 'Geist Mono',
+                    color: '#f5f5f5'
+                }).setOrigin(0.5).setDepth(21);
+
+                // Show penalty for remaining updates
+                if (this.activeUpdates > 0) {
+                    this.add.text(centerX, centerY, 'PENDING UPDATES: -' + updatePenalty, {
+                        fontSize: '14px',
+                        fontFamily: 'Geist Mono',
+                        color: '#ef4444'
+                    }).setOrigin(0.5).setDepth(21);
+                }
+
+                this.add.text(centerX, centerY + 35, 'FINAL SCORE: ' + finalScore, {
+                    fontSize: '20px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#10b981'
+                }).setOrigin(0.5).setDepth(21);
+
+                const restartBtn = this.add.text(centerX, centerY + 80, 'CLICK OR PRESS SPACE TO RESTART', {
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono',
+                    color: '#666666'
+                }).setOrigin(0.5).setDepth(21).setInteractive({ useHandCursor: true });
+
+                const restart = () => this.scene.restart();
+                this.input.keyboard.once('keydown-SPACE', restart);
+                restartBtn.once('pointerdown', restart);
+            }
+
+            loseGame(enemy) {
+                this.gameOver = true;
+                this.player.setVelocity(0);
+                this.enemies.getChildren().forEach(e => e.setVelocity(0));
+                this.clearAlert();
+
+                // Stop the music, play sad trombone game over sound
+                soundManager.stopJingle();
+                soundManager.playGameOver();
+
+                const centerX = this.cameras.main.centerX;
+                const centerY = this.cameras.main.centerY;
+
+                // Currency mapping for each market
+                const currencies = {
+                    'EU': { symbol: '€', code: 'EUR', name: 'Euro' },
+                    'US': { symbol: '$', code: 'USD', name: 'US Dollar' },
+                    'Brazil': { symbol: 'R$', code: 'BRL', name: 'Brazilian Real' },
+                    'S.Korea': { symbol: '₩', code: 'KRW', name: 'South Korean Won' }
+                };
+
+                const countryName = enemy ? enemy.flagName : 'Unknown';
+                const currency = currencies[countryName] || currencies['US'];
+
+                // Share of required compliance elements actually collected
+                const compliancePct = this.initialDots > 0
+                    ? Math.round((this.collectedInitialDots / this.initialDots) * 100) : 0;
+                const pctColor = compliancePct >= 80 ? '#10b981' : (compliancePct >= 50 ? '#fbbf24' : '#ef4444');
+
+                // Heavy camera shake
+                this.cameras.main.shake(500, 0.02);
+
+                // Overlay with dark theme
+                const overlay = this.add.rectangle(centerX, centerY,
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.92).setDepth(20);
+
+                // Non-compliance alert badge - flashing
+                const alertBadge = this.add.text(centerX, centerY - 120, '⚠ NON-COMPLIANCE ALERT ⚠', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#ef4444',
+                    backgroundColor: '#991b1b33',
+                    padding: { x: 12, y: 4 }
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                // Main AUDIT FAILED text - starts scaled to 0
+                const auditFailedText = this.add.text(centerX, centerY - 50, 'AUDIT FAILED', {
+                    fontSize: '42px',
+                    fontFamily: 'Geist',
+                    fontStyle: 'bold',
+                    color: '#ef4444'
+                }).setOrigin(0.5).setScale(0).setDepth(21);
+
+                // Dramatic scale-in with shake
+                this.tweens.add({
+                    targets: auditFailedText,
+                    scale: 1,
+                    duration: 300,
+                    ease: 'Back.easeOut',
+                    onComplete: () => {
+                        // Shake effect
+                        this.tweens.add({
+                            targets: auditFailedText,
+                            x: centerX + 4,
+                            duration: 40,
+                            yoyo: true,
+                            repeat: 15,
+                            ease: 'Sine.easeInOut',
+                            onComplete: () => {
+                                auditFailedText.setX(centerX);
+                            }
+                        });
+                    }
+                });
+
+                // Flash the alert badge
+                this.tweens.add({
+                    targets: alertBadge,
+                    alpha: 1,
+                    duration: 200,
+                    delay: 100
+                });
+                this.tweens.add({
+                    targets: alertBadge,
+                    alpha: 0.5,
+                    duration: 300,
+                    yoyo: true,
+                    repeat: -1,
+                    delay: 500
+                });
+
+                // Other elements fade in
+                const withdrawnText = this.add.text(centerX, centerY + 10, 'Product withdrawn from market', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist',
+                    color: '#888888'
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                // Compliance level: the headline result (penalty scales with what was missed)
+                const complianceText = this.add.text(centerX, centerY + 40, 'COMPLIANCE LEVEL: ' + compliancePct + '%', {
+                    fontSize: '18px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: pctColor
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                const penaltyAmount = { value: 0 };
+                // Penalty scales based on uncollected items: 0 if all collected, 2M if none collected
+                const uncollectedRatio = this.totalDots > 0 ? (this.totalDots - this.collectedDots) / this.totalDots : 1;
+                const targetPenalty = Math.round(2000000 * uncollectedRatio);
+                const penaltyText = this.add.text(centerX, centerY + 78, 'PENALTY: ' + currency.symbol + '0', {
+                    fontSize: '20px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: 'bold',
+                    color: '#ef4444'
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                // Spell out the currency so the symbol is unambiguous
+                const currencyNote = this.add.text(centerX, centerY + 101, currency.name + ' (' + currency.code + ')', {
+                    fontSize: '11px',
+                    fontFamily: 'Geist Mono',
+                    color: '#888888'
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                // Counting animation for penalty
+                this.tweens.add({
+                    targets: penaltyAmount,
+                    value: targetPenalty,
+                    duration: 2000,
+                    delay: 600,
+                    ease: 'Cubic.easeOut',
+                    onUpdate: () => {
+                        const formatted = Math.floor(penaltyAmount.value).toLocaleString('en-US');
+                        penaltyText.setText('PENALTY: ' + currency.symbol + formatted);
+                    }
+                });
+
+                const scoreText = this.add.text(centerX, centerY + 126, 'FINAL SCORE: ' + this.score, {
+                    fontSize: '16px',
+                    fontFamily: 'Geist Mono',
+                    color: '#f5f5f5'
+                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                const restartText = this.add.text(centerX, centerY + 160, 'CLICK OR PRESS SPACE TO RESTART', {
+                    fontSize: '12px',
+                    fontFamily: 'Geist Mono',
+                    color: '#666666'
+                }).setOrigin(0.5).setAlpha(0).setDepth(21).setInteractive({ useHandCursor: true });
+
+                // Staggered fade-in for other elements
+                this.tweens.add({
+                    targets: [withdrawnText, complianceText],
+                    alpha: 1,
+                    duration: 300,
+                    delay: 400
+                });
+                this.tweens.add({
+                    targets: [penaltyText, currencyNote],
+                    alpha: 1,
+                    duration: 300,
+                    delay: 600
+                });
+                this.tweens.add({
+                    targets: scoreText,
+                    alpha: 1,
+                    duration: 300,
+                    delay: 800
+                });
+                this.tweens.add({
+                    targets: restartText,
+                    alpha: 1,
+                    duration: 300,
+                    delay: 1000
+                });
+
+                const restart = () => this.scene.restart();
+                this.input.keyboard.once('keydown-SPACE', restart);
+                restartText.once('pointerdown', restart);
+            }
+        }
+
+        // Game configuration
+        const config = {
+            type: Phaser.AUTO,
+            width: MAZE_WIDTH * TILE_SIZE,
+            height: MAZE_HEIGHT * TILE_SIZE + 40,
+            parent: 'game-container',
+            backgroundColor: '#0a0a0a',
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    debug: false
+                }
+            },
+            scene: [BootScene, MenuScene, GameScene]
+        };
+
+        // Start the game after fonts are loaded
+        document.fonts.ready.then(() => {
+            window.game = new Phaser.Game(config);
+        });
+    </script>
+</body>
+</html>

@@ -1,32 +1,57 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>COMPLIANCE-MAN™ | Comply or Pay!</title>
-    <link rel="icon" href="assets/c-icon-pos.svg" type="image/svg+xml">
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+    <meta name="description" content="A Certean arcade. Eat the standards, collect the markings, dodge the regulators — and keep your products compliant.">
+    <meta name="theme-color" content="#0F141D">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Icons: a square, solid chomper reads at 16px where the old line mark blurred -->
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+    <link rel="manifest" href="site.webmanifest">
+
+    <!-- Link preview card -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Certean Arcade">
+    <meta property="og:title" content="COMPLIANCE-MAN™ | Comply or Pay!">
+    <meta property="og:description" content="Eat the standards. Dodge the regulators. A Certean arcade.">
+    <meta property="og:url" content="https://ruccola1.github.io/c-certman/">
+    <meta property="og:image" content="https://ruccola1.github.io/c-certman/assets/og-compliance-man.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="COMPLIANCE-MAN — Comply or Pay!">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="COMPLIANCE-MAN™ | Comply or Pay!">
+    <meta name="twitter:description" content="Eat the standards. Dodge the regulators. A Certean arcade.">
+    <meta name="twitter:image" content="https://ruccola1.github.io/c-certman/assets/og-compliance-man.png">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&family=Honk&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@300..700&family=Nabla&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <script>
         tailwind.config = {
-            darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        charcoal: "#0a0a0a",
-                        "surface-dark": "#141414",
-                        "surface-light": "#1e1e1e",
-                        "vibrant-green": "#10b981",
-                        "brand-white": "#f5f5f5",
-                        "muted-red": "#991b1b",
+                        carbon: "#141414",
+                        ink: "#10151F",
+                        steel: "#6B80A0",
+                        "steel-light": "#8FA5CC",
+                        "steel-dark": "#3D4F6B",
+                        accent: "#FFC53D",
+                        "accent-dim": "#E0A818",
+                        "off-white": "#FAFAFA",
                     },
                     fontFamily: {
-                        sans: ["Geist", "sans-serif"],
-                        mono: ["Geist Mono", "monospace"],
+                        sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+                        mono: ["Geist Mono", "ui-monospace", "monospace"],
                     },
                 },
             },
@@ -38,177 +63,235 @@
             padding: 0;
             box-sizing: border-box;
         }
+        :root {
+            --ink: #10151F;
+            --line: rgba(255, 255, 255, 0.11);
+            --accent: #FFC53D;
+        }
+        html, body {
+            height: 100%;
+        }
         body {
-            font-family: 'Geist', sans-serif;
+            font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
+            background: linear-gradient(180deg, #10151F 0%, #141414 100%);
+            /* The shell is exactly the window: the board is sized from what is
+               left over, so the whole game always fits with nothing to scroll. */
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-font-smoothing: antialiased;
         }
-        .grid-pattern {
-            background-image:
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
+        /* The lined gradient: fine diagonal rules that fade down the page */
+        .stripe-field {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            background-image: repeating-linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.055) 0px,
+                rgba(255, 255, 255, 0.055) 1px,
+                transparent 1px,
+                transparent 7px
+            );
+            -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.75) 100%);
+            mask-image: linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.75) 100%);
         }
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        /* Display type: the arcade face, on the brand's black-and-blue ground */
+        .display {
+            font-family: 'Nabla', 'Geist', sans-serif;
+            font-weight: 400;
         }
-        .shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            background-size: 200% 100%;
-            animation: shimmer 3s infinite;
+        /* Stat numerals carry the same arcade face */
+        .figure {
+            font-family: 'Nabla', 'Geist', sans-serif;
+            font-weight: 400;
         }
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        #game-container {
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        #game-container canvas {
-            display: block;
-        }
-        /* Preload Honk font */
+        /* Force the display font to load before the canvas draws with it */
         .font-preload {
-            font-family: 'Honk', sans-serif;
+            font-family: 'Nabla', system-ui;
             position: absolute;
             left: -9999px;
             visibility: hidden;
         }
+        /* A stat that just changed gets a quick arcade pop */
+        @keyframes statFlash {
+            0%   { filter: brightness(2.4); transform: translateY(-2px) scale(1.06); }
+            60%  { filter: brightness(1.4); }
+            100% { filter: none; transform: none; }
+        }
+        .flash { animation: statFlash 0.3s ease-out; }
+        /* Anything urgent blinks like a warning lamp */
+        @keyframes blink {
+            0%, 49%   { opacity: 1; }
+            50%, 100% { opacity: 0.25; }
+        }
+        .blink { animation: blink 0.55s steps(1, end) infinite; }
+        /* A short window gives its space to the board, not to the trimmings. */
+        @media (max-height: 860px) {
+            .legend-row { display: none; }
+        }
+        @media (max-height: 700px) {
+            .eyebrow-row { display: none; }
+            .stat-cell { padding-top: 7px; padding-bottom: 7px; }
+        }
+        /* Window mode: the board and the score strip, nothing else. */
+        body.window-mode .page-header,
+        body.window-mode .page-footer,
+        body.window-mode .eyebrow-row,
+        body.window-mode .legend-row { display: none !important; }
+        body.window-mode .board-wrap { padding: 8px 0 0; }
+        body.window-mode main { padding: 0 !important; }
+        body.window-mode .shell { padding-left: 8px; padding-right: 8px; }
+        .label {
+            font-family: 'Geist Mono', ui-monospace, monospace;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+        .cta {
+            background: var(--accent);
+            color: #141414;
+            transition: background-color .15s ease;
+        }
+        .cta:hover { background: #E0A818; }
+        /* Board frame with technical corner ticks */
+        .board {
+            position: relative;
+            border: 1px solid var(--line);
+        }
+        .board::before,
+        .board::after {
+            content: "";
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            border: 1px solid var(--accent);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .board::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .board::after { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+        .board-wrap {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+        }
+        .board {
+            height: 100%;
+            max-height: 100%;
+            max-width: 100%;
+            aspect-ratio: 19 / 22;
+        }
+        #game-container {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #game-container canvas {
+            display: block;
+        }
     </style>
 </head>
-<body class="bg-charcoal text-brand-white min-h-screen flex flex-col">
-    <!-- Font preloader -->
-    <span class="font-preload">Loading Honk Font</span>
-    <!-- Background Grid Pattern -->
-    <div class="fixed inset-0 grid-pattern pointer-events-none"></div>
+<body class="text-white min-h-screen flex flex-col antialiased">
+    <span class="font-preload">Nabla</span>
+    <div class="stripe-field"></div>
 
     <!-- Header -->
-    <header class="border-b border-white/10 px-8 py-4 flex items-center justify-between bg-surface-dark sticky top-0 z-50">
-        <div class="flex items-center space-x-3">
-            <img src="assets/c-icon-pos.png" alt="CertMan" class="h-10 w-auto object-contain">
-            <div class="flex flex-col">
-                <span class="text-lg font-bold tracking-tighter leading-none">COMPLIANCE-MAN™</span>
-                <span class="text-[10px] text-white/40 font-mono tracking-[0.2em]">Comply or pay</span>
-            </div>
+    <header class="page-header relative z-10 px-4 sm:px-10 h-16 sm:h-[72px] flex items-center justify-between border-b border-white/10 flex-none">
+        <div class="flex items-center gap-2.5 sm:gap-5 min-w-0">
+            <svg class="h-7 w-auto" viewBox="0 0 220 230" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#FFFFFF" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>
+            <span class="display text-[11px] sm:text-[17px] leading-none whitespace-nowrap">COMPLIANCE-MAN</span>
+            <span class="hidden md:block w-5 h-px bg-white/20"></span>
+            <span class="hidden md:inline label text-[10px] text-steel">Comply or pay</span>
         </div>
-        <div class="flex items-center space-x-8 text-sm">
-            <div class="flex flex-col items-end">
-                <span class="text-[10px] text-white/40 uppercase tracking-widest font-mono">System Status</span>
-                <span class="text-vibrant-green flex items-center gap-2 font-mono text-xs">
-                    <span class="w-1.5 h-1.5 bg-vibrant-green"></span>
-                    READY
-                </span>
-            </div>
-            <button id="mute-btn" class="border border-white/20 hover:bg-white hover:text-black transition-colors px-4 py-2 text-[10px] font-bold uppercase tracking-widest font-mono flex items-center gap-2">
-                <span class="material-symbols-outlined text-sm">volume_up</span>
-                AUDIO
-            </button>
+        <div class="flex items-center gap-2 sm:gap-6">
+            <button id="mute-btn" class="label text-[10px] text-white/70 hover:text-white transition-colors border border-white/15 hover:border-white/40 px-2.5 sm:px-4 h-9 flex items-center whitespace-nowrap">Sound off</button>
+            <button id="window-btn" class="label text-[10px] text-white/70 hover:text-white transition-colors border border-white/15 hover:border-white/40 px-2.5 sm:px-4 h-9 flex items-center whitespace-nowrap">Full screen</button>
+            <a href="https://certean.com" target="_blank" rel="noopener" class="cta label text-[10px] px-3 sm:px-5 h-9 hidden sm:flex items-center gap-2">Certean.com <span aria-hidden="true">&#8594;</span></a>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 flex items-center justify-center p-8 relative z-10">
-        <div class="flex gap-8 items-start">
-            <!-- Left Sidebar - Stats -->
-            <aside class="w-64 flex-col gap-4 hidden lg:flex">
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">How to Play</h3>
-                    <ul class="space-y-3 text-xs text-white/60">
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
-                            <span>Collect compliance elements</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
-                            <span>Avoid regulatory flags</span>
-                        </li>
-                        <li class="flex items-start gap-2">
-                            <span class="material-symbols-outlined text-vibrant-green text-sm mt-0.5">check_circle</span>
-                            <span>Collect updates fast — over 5 pending costs a product</span>
-                        </li>
-                    </ul>
-                </div>
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">Controls</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">WASD</span>
-                            <span class="text-xs text-white/50">Move</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">ARROWS</span>
-                            <span class="text-xs text-white/50">Move</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="px-2 py-1 border border-white/10 bg-white/5 text-[10px] font-mono">SPACE</span>
-                            <span class="text-xs text-white/50">Start/Restart</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+    <main class="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center py-2 sm:py-4">
+        <div class="shell w-full max-w-[660px] px-4 h-full flex flex-col min-h-0">
 
-            <!-- Game Container -->
-            <div class="flex flex-col items-center">
-                <div id="game-container" class="shadow-2xl"></div>
+            <!-- Eyebrow -->
+            <div class="eyebrow-row flex items-end justify-between pb-3 flex-none">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-[7px] h-[7px] bg-accent"></span>
+                    <span class="label text-[10px] text-steel">A Certean arcade</span>
+                </div>
+                <span class="label text-[10px] text-white/35 hidden sm:inline">Build 2026.1</span>
             </div>
 
-            <!-- Right Sidebar - Collectibles -->
-            <aside class="w-64 flex-col gap-4 hidden lg:flex">
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-4 font-mono">Collectibles</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-vibrant-green"></div>
-                                <span class="text-xs text-white/70">Compliance Elements</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-vibrant-green" id="standards-count">0</span>
-                        </li>
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-blue-500"></div>
-                                <span class="text-xs text-white/70">Legislations</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-blue-400" id="legislations-count">0</span>
-                        </li>
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-amber-500"></div>
-                                <span class="text-xs text-white/70">Markings</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-amber-400" id="markings-count">0</span>
-                        </li>
-                        <li class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-3 h-3 bg-white/30"></div>
-                                <span class="text-xs text-white/70">Requirements</span>
-                            </div>
-                            <span class="text-[10px] font-mono text-white/50" id="requirements-count">0</span>
-                        </li>
-                    </ul>
+            <!-- Game Container -->
+            <div class="board-wrap"><div class="board bg-ink"><div id="game-container"></div></div></div>
+
+            <!-- Stat row -->
+            <div class="grid grid-cols-5 border border-white/10 flex-none">
+                <div class="stat-cell py-2.5 sm:py-3.5 px-2 sm:px-4 border-r border-white/10">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1 sm:mb-2 truncate">Score</div>
+                    <div id="score-stat" class="figure text-[14px] sm:text-[21px] leading-none whitespace-nowrap overflow-hidden">0</div>
                 </div>
-                <div class="p-5 bg-surface-dark border border-white/10">
-                    <h3 class="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-3 font-mono">Regulatory Threats</h3>
-                    <ul class="space-y-3">
-                        <li class="flex items-center gap-3">
-                            <div class="w-8 h-8 bg-muted-red/20 border border-muted-red/30 flex items-center justify-center">
-                                <span class="material-symbols-outlined text-red-400 text-sm">flag</span>
-                            </div>
-                            <span class="text-xs text-white/70">EU, US, Brazil, S.Korea</span>
-                        </li>
-                    </ul>
+                <div class="stat-cell py-2.5 sm:py-3.5 px-2 sm:px-4 border-r border-white/10">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1 sm:mb-2 truncate">Compliance</div>
+                    <div id="compliance-stat" class="figure text-[14px] sm:text-[21px] leading-none whitespace-nowrap overflow-hidden">0%</div>
                 </div>
-            </aside>
+                <div class="stat-cell py-2.5 sm:py-3.5 px-2 sm:px-4 border-r border-white/10 min-w-0">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1 sm:mb-2 truncate">Collected</div>
+                    <div id="progress-stat" class="figure text-[12px] sm:text-[16px] leading-none whitespace-nowrap overflow-hidden">0</div>
+                </div>
+                <div class="stat-cell py-2.5 sm:py-3.5 px-2 sm:px-4 border-r border-white/10">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1 sm:mb-2 truncate">Products</div>
+                    <div id="products-stat" class="figure text-[14px] sm:text-[21px] leading-none whitespace-nowrap overflow-hidden">3</div>
+                </div>
+                <div class="stat-cell py-2.5 sm:py-3.5 px-2 sm:px-4">
+                    <div class="label text-[8px] sm:text-[9px] tracking-[0.08em] sm:tracking-[0.18em] text-steel mb-1 sm:mb-2 truncate">Updates</div>
+                    <div id="updates-stat" class="figure text-[13px] sm:text-[17px] leading-none whitespace-nowrap overflow-hidden">0 / 5</div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend-row hidden sm:flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6 pt-4 flex-none">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 bg-[#8FA5CC]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Elements</span>
+                    <span id="standards-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 border border-[#8FA5CC]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Legislations</span>
+                    <span id="legislations-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-3.5 h-2.5 rounded-[2px] bg-[#FFC53D]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Markings</span>
+                    <span id="markings-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-1.5 h-1.5 bg-[#8FA5CC]/40"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Requirements</span>
+                    <span id="requirements-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-[#7DA3E0]"></span>
+                    <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Updates</span>
+                </div>
+            </div>
         </div>
     </main>
 
     <!-- Footer -->
-    <footer class="border-t border-white/10 px-8 py-4 bg-surface-dark text-[9px] font-mono text-white/30 flex items-center justify-between">
-        <div class="flex items-center gap-8">
-            <span class="flex items-center gap-2"><span class="w-1 h-1 bg-vibrant-green"></span> SYSTEM: OPERATIONAL</span>
-            <span>BUILD: v2.0.4</span>
-        </div>
-        <div class="flex items-center gap-6">
-            <span class="uppercase tracking-[0.3em]">CERTEAN TECHNOLOGY SYSTEMS</span>
-        </div>
+    <footer class="page-footer relative z-10 px-4 sm:px-10 py-4 flex items-center justify-between border-t border-white/10 label text-[9px] sm:text-[10px] text-white/45 flex-none">
+        <span>&#169; 2026 Certean</span>
+        <span class="hidden sm:inline">WASD / Arrows to move &#183; Space to start</span><span class="sm:hidden">Swipe &#183; Tap to start</span>
     </footer>
 
     <script>
@@ -217,6 +300,8 @@
             constructor() {
                 this.ctx = null;
                 this.masterGain = null;
+                this.musicGain = null;   // every music note hangs off this bus
+                this.musicMode = false;  // true while a track schedules its notes
                 this.initialized = false;
                 this.muted = false;
                 this.jinglePlaying = false;
@@ -233,6 +318,9 @@
                     this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                     this.masterGain = this.ctx.createGain();
                     this.masterGain.connect(this.ctx.destination);
+                    this.musicGain = this.ctx.createGain();
+                    this.musicGain.gain.value = 0.8; // headroom for eight voices
+                    this.musicGain.connect(this.masterGain);
                     this.initialized = true;
                     this.resume();
                 } catch (e) {
@@ -256,8 +344,10 @@
                     this.stopJingle(true);
                 } else if (this.currentTrack === 'fanfare') {
                     this.playFanfare();
-                } else if (this.currentTrack === 'hero') {
-                    this.playSpaceHero();
+                } else if (this.currentTrack === 'anthem') {
+                    this.playAnthem();
+                } else if (this.currentTrack === 'cancan') {
+                    this.playCanCan();
                 }
             }
 
@@ -272,7 +362,7 @@
                 gain.gain.setValueAtTime(volume, this.ctx.currentTime + delay);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + delay + duration);
                 osc.connect(gain);
-                gain.connect(this.masterGain);
+                gain.connect(this.musicMode && this.musicGain ? this.musicGain : this.masterGain);
                 osc.start(this.ctx.currentTime + delay);
                 osc.stop(this.ctx.currentTime + delay + duration);
             }
@@ -280,6 +370,7 @@
             // Stop the looping jingle
             stopJingle(keepTrack = false) {
                 this.jinglePlaying = false;
+                this.musicMode = false;
                 if (!keepTrack) {
                     this.currentTrack = null;
                 }
@@ -287,131 +378,227 @@
                     clearTimeout(this.jingleTimeout);
                     this.jingleTimeout = null;
                 }
+                // Notes are scheduled up to a bar ahead — drop the bus they are
+                // connected to so nothing from the old track survives a restart
+                if (this.musicGain) {
+                    try { this.musicGain.disconnect(); } catch (e) { /* already gone */ }
+                    this.musicGain = this.ctx.createGain();
+                    this.musicGain.gain.value = 0.8;
+                    this.musicGain.connect(this.masterGain);
+                }
             }
 
-            // 80s Sci-Fi Hero Theme - Automan/Star Wars/Knight Rider style
-            playSpaceHero() {
+            // The European anthem: the Ode to Joy theme from the finale of
+            // Beethoven's Ninth, arranged for the square-wave band
+            playAnthem() {
                 if (!this.initialized || this.muted) {
                     // Remember what should be playing so init/unmute can resume it
-                    this.currentTrack = 'hero';
+                    this.currentTrack = 'anthem';
                     return;
                 }
                 // Don't restart if already playing
-                if (this.currentTrack === 'hero' && this.jinglePlaying) return;
+                if (this.currentTrack === 'anthem' && this.jinglePlaying) return;
                 this.stopJingle();
-                this.currentTrack = 'hero';
+                this.currentTrack = 'anthem';
                 this.jinglePlaying = true;
+
+                const N = {
+                    // bass octave
+                    F2: 87.31, G2: 98.00, A2: 110.00, B2: 123.47,
+                    C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00, A3: 220.00, B3: 246.94,
+                    // melody octave
+                    C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00
+                };
+                // [frequency, beats] — the full 16-bar theme
+                const MELODY = [
+                    [N.E4, 1], [N.E4, 1], [N.F4, 1], [N.G4, 1],
+                    [N.G4, 1], [N.F4, 1], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.C4, 1], [N.D4, 1], [N.E4, 1],
+                    [N.E4, 1.5], [N.D4, 0.5], [N.D4, 2],
+
+                    [N.E4, 1], [N.E4, 1], [N.F4, 1], [N.G4, 1],
+                    [N.G4, 1], [N.F4, 1], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.C4, 1], [N.D4, 1], [N.E4, 1],
+                    [N.D4, 1.5], [N.C4, 0.5], [N.C4, 2],
+
+                    [N.D4, 1], [N.D4, 1], [N.E4, 1], [N.C4, 1],
+                    [N.D4, 1], [N.E4, 0.5], [N.F4, 0.5], [N.E4, 1], [N.C4, 1],
+                    [N.D4, 1], [N.E4, 0.5], [N.F4, 0.5], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.D4, 1], [N.G3, 2],
+
+                    [N.E4, 1], [N.E4, 1], [N.F4, 1], [N.G4, 1],
+                    [N.G4, 1], [N.F4, 1], [N.E4, 1], [N.D4, 1],
+                    [N.C4, 1], [N.C4, 1], [N.D4, 1], [N.E4, 1],
+                    [N.D4, 1.5], [N.C4, 0.5], [N.C4, 2]
+                ];
+                // Second voice: the diatonic third under each melody note
+                const THIRD = {};
+                THIRD[N.C4] = N.A3; THIRD[N.D4] = N.B3; THIRD[N.E4] = N.C4;
+                THIRD[N.F4] = N.D4; THIRD[N.G4] = N.E4; THIRD[N.G3] = N.E3;
+                // Triads under each bar
+                const CH = {
+                    C: [N.C3, N.E3, N.G3],
+                    G: [N.G2, N.B2, N.D3],
+                    F: [N.F2, N.A2, N.C3]
+                };
+                const CHORDS = [
+                    CH.C, CH.G, CH.C, CH.G, CH.C, CH.G, CH.F, CH.C,
+                    CH.G, CH.C, CH.G, CH.C, CH.C, CH.G, CH.F, CH.C
+                ];
 
                 const playLoop = () => {
                     if (!this.jinglePlaying || this.muted) return;
+                    this.musicMode = true;
 
-                    // Tempo: 140 BPM, 1/8 note = 0.214s
-                    const eighth = 0.214;
+                    const beat = 0.42;          // ~143 BPM, marching pace
+                    const bars = CHORDS.length;
 
-                    // Electronic kick drum
-                    const playKick = (time) => {
-                        this.playTone(150, 0.08, 'sine', 0.35, time);
-                        this.playTone(50, 0.15, 'sine', 0.3, time);
-                    };
-
-                    // Snare/clap
-                    const playSnare = (time) => {
-                        this.playTone(200, 0.05, 'square', 0.15, time);
-                        for (let i = 0; i < 5; i++) {
-                            this.playTone(800 + Math.random() * 600, 0.08, 'sawtooth', 0.04, time + i * 0.005);
-                        }
-                    };
-
-                    // Hi-hat
-                    const playHat = (time, open = false) => {
-                        const dur = open ? 0.12 : 0.04;
-                        for (let i = 0; i < 3; i++) {
-                            this.playTone(8000 + Math.random() * 4000, dur, 'sawtooth', 0.02, time);
-                        }
-                    };
-
-                    // Synth bass
-                    const playBass = (freq, time) => {
-                        this.playTone(freq, eighth * 0.9, 'sawtooth', 0.2, time);
-                        this.playTone(freq * 0.5, eighth * 1.1, 'triangle', 0.25, time);
-                    };
-
-                    // Melody - A minor, serious tone (Am→Dm→E→Am, i-iv-V-i)
-                    const melody = [
-                        // Bar 1: Am - low register, deliberate (i)
-                        220, 220, 262, 262, 330, 330, 330, 0,
-                        // Bar 2: Dm - weight and gravity (iv)
-                        294, 294, 349, 349, 294, 294, 262, 0,
-                        // Bar 3: E - tension with G# (V)
-                        330, 330, 415, 415, 494, 494, 330, 0,
-                        // Bar 4: Am - resolve, descending
-                        440, 392, 330, 330, 220, 220, 220, 0,
-                        // Bar 5: Dm→Am descent
-                        294, 294, 220, 220, 330, 330, 220, 0,
-                        // Bar 6: E→Am final resolve
-                        330, 415, 494, 494, 440, 330, 262, 220,
-                        // Bar 7-8: Am pedal tone
-                        220, 220, 220, 0, 0, 0, 0, 0,
-                    ];
-
-                    // Bass - fifths in Am: A→D→E→A
-                    const bassNotes = [
-                        // Bar 1-2: Am to Dm
-                        110, 0, 110, 0, 220, 0, 110, 0,
-                        73, 0, 73, 0, 147, 0, 73, 0,
-                        // Bar 3-4: E to Am (V-i)
-                        82, 0, 82, 0, 165, 0, 82, 0,
-                        110, 0, 110, 0, 220, 0, 110, 0,
-                        // Bar 5-6: Dm to E (iv-V)
-                        73, 0, 73, 0, 147, 0, 73, 0,
-                        82, 0, 82, 0, 165, 0, 82, 0,
-                        // Bar 7-8: Am resolve
-                        110, 0, 110, 0, 110, 0, 0, 0,
-                    ];
-
-                    const totalEighths = melody.length;
-                    const loopDuration = totalEighths * eighth;
-
-                    // Schedule melody
-                    melody.forEach((freq, i) => {
-                        const time = i * eighth;
-                        if (freq > 0) {
-                            // Lead synth (bright square wave - very 80s)
-                            this.playTone(freq, eighth * 0.85, 'square', 0.15, time);
-                            // Detuned second oscillator for thickness
-                            this.playTone(freq * 1.005, eighth * 0.85, 'square', 0.08, time);
-                            // Add brass layer on held notes (same freq as previous)
-                            if (i > 0 && melody[i-1] === freq) {
-                                this.playTone(freq, eighth * 0.9, 'sawtooth', 0.08, time);
-                            }
-                        }
+                    // Voices 1-3: square lead, an octave shimmer above it and a
+                    // third below, so the tune moves in parallel harmony
+                    let t = 0;
+                    MELODY.forEach(note => {
+                        const dur = beat * note[1];
+                        this.playTone(note[0], dur * 0.92, 'square', 0.16, t);
+                        this.playTone(note[0] * 2, dur * 0.45, 'triangle', 0.035, t);
+                        const third = THIRD[note[0]];
+                        if (third) this.playTone(third, dur * 0.9, 'square', 0.08, t);
+                        t += dur;
                     });
 
-                    // Schedule bass
-                    bassNotes.forEach((freq, i) => {
-                        if (freq > 0) {
-                            playBass(freq, i * eighth);
-                        }
-                    });
+                    for (let i = 0; i < bars; i++) {
+                        const chord = CHORDS[i];
+                        const bt = i * 4 * beat;
 
-                    // Schedule drums on strict 1/8 grid
-                    for (let i = 0; i < totalEighths; i++) {
-                        const time = i * eighth;
-                        // Kick on 1 and 5 (beats 0, 4 of each 8)
-                        if (i % 8 === 0 || i % 8 === 4) playKick(time);
-                        // Snare on 3 and 7 (beats 2, 6 of each 8)
-                        if (i % 8 === 2 || i % 8 === 6) playSnare(time);
-                        // Hi-hat on every 1/8, open on downbeats
-                        playHat(time, i % 4 === 0);
+                        // Voices 4-6: a sustained triad twice a bar
+                        [0, 2].forEach(half => {
+                            const ht = bt + half * beat;
+                            chord.forEach(f => this.playTone(f, beat * 1.85, 'triangle', 0.05, ht));
+                            // Voice 7: walking bass, root then fifth
+                            this.playTone(chord[0] / 2, beat * 0.9, 'sine', 0.2, ht);
+                            this.playTone(chord[2] / 2, beat * 0.55, 'sine', 0.13, ht + beat);
+                            // Kick
+                            this.playTone(150, 0.08, 'sine', 0.24, ht);
+                            this.playTone(50, 0.15, 'sine', 0.2, ht);
+                        });
+
+                        // Voice 8: a bright arpeggio on the offbeats
+                        for (let h = 0; h < 4; h++) {
+                            this.playTone(chord[h % 3] * 2, 0.12, 'triangle', 0.05, bt + h * beat + beat * 0.5);
+                        }
+
+                        // Kit: snare on three, hats on every beat
+                        this.playTone(200, 0.05, 'square', 0.1, bt + 2 * beat);
+                        for (let h = 0; h < 4; h++) {
+                            this.playTone(8000, 0.02, 'square', h === 0 ? 0.05 : 0.03, bt + h * beat);
+                        }
                     }
 
-                    this.jingleTimeout = setTimeout(() => playLoop(), loopDuration * 1000);
+                    this.musicMode = false;
+                    this.jingleTimeout = setTimeout(() => playLoop(), bars * 4 * beat * 1000);
                 };
 
                 playLoop();
             }
 
-            // Fanfare of Glory - triumphant brass fanfare
+            /**
+             * The victory lap: Offenbach's Galop infernal — the Can-Can from
+             * "Orphee aux enfers" (Paris, 1858), public domain, arranged here
+             * for the square-wave band. The Ode to Joy marches you through the
+             * board; this is what plays once the board is clean.
+             */
+            playCanCan() {
+                if (!this.initialized || this.muted) {
+                    this.currentTrack = 'cancan';
+                    return;
+                }
+                if (this.currentTrack === 'cancan' && this.jinglePlaying) return;
+                this.stopJingle();
+                this.currentTrack = 'cancan';
+                this.jinglePlaying = true;
+
+                const N = {
+                    // bass octave
+                    D2: 73.42, A2: 110.00, D3: 146.83, Fs3: 185.00, A3: 220.00, Cs4: 277.18,
+                    // chord octave
+                    D4: 293.66, E4: 329.63, Fs4: 369.99, G4: 392.00, A4: 440.00,
+                    // melody
+                    Cs5: 554.37, D5: 587.33, E5: 659.26, Fs5: 739.99, G5: 783.99,
+                    Gs5: 830.61, A5: 880.00, B5: 987.77, D6: 1174.66, Fs6: 1479.98
+                };
+                // [frequency, start in beats, length in beats] — 24 bars of 2/4
+                const MELODY = [
+                    [N.A4, 0, 0.5], [N.E5, 0.5, 0.5], [N.E5, 1, 0.5], [N.Fs5, 1.5, 0.385], [N.Fs5, 1.885, 0.112],
+                    [N.E5, 2, 0.5], [N.D5, 2.5, 0.5], [N.D5, 3, 0.5], [N.Fs5, 3.5, 0.5], [N.G5, 4, 0.5],
+                    [N.B5, 4.5, 0.5], [N.D6, 5, 0.5], [N.B5, 5.5, 0.5], [N.B5, 6, 0.5], [N.A5, 6.5, 0.5],
+                    [N.A5, 7, 1], [N.B5, 8, 0.5], [N.Cs5, 8.5, 0.5], [N.Cs5, 9, 0.5], [N.B5, 9.5, 0.5],
+                    [N.A5, 10, 0.5], [N.D5, 10.5, 0.5], [N.D5, 11, 0.5], [N.Fs5, 11.5, 0.385],
+                    [N.Gs5, 11.885, 0.112], [N.Fs5, 12, 0.5], [N.E5, 12.5, 0.5], [N.Fs5, 13, 0.5],
+                    [N.E5, 13.5, 0.385], [N.Gs5, 13.885, 0.112], [N.Fs5, 14, 0.5], [N.E5, 14.5, 0.5],
+                    [N.Fs5, 15, 0.5], [N.E5, 15.5, 0.5], [N.Fs6, 16, 1], [N.D6, 17, 1], [N.B5, 18, 1],
+                    [N.A5, 19, 1], [N.A5, 20, 0.5], [N.E5, 20.5, 0.5], [N.Fs5, 21, 0.5], [N.G5, 21.5, 0.5],
+                    [N.Fs5, 22, 0.5], [N.E5, 22.5, 0.5], [N.D5, 23, 1]
+                ];
+                const CH = {
+                    D: { bass: N.D2, fifth: N.A2, triad: [N.D4, N.Fs4, N.A4] },
+                    A: { bass: N.A2, fifth: N.E4 / 2, triad: [N.Cs4, N.E4, N.A4] }
+                };
+                const BARS = ['A','D','D','D','A','D','D','D','A','A','D','D',
+                              'D','D','D','D','D','D','D','D','A','D','D','D'].map(k => CH[k]);
+
+                const playLoop = () => {
+                    if (!this.jinglePlaying || this.muted) return;
+                    this.musicMode = true;
+
+                    const beat = 0.375;             // 160 BPM, the galop's own pace
+                    const bars = BARS.length;
+
+                    // Lead: square melody with an octave shimmer over it
+                    MELODY.forEach(note => {
+                        const t = note[1] * beat;
+                        const dur = note[2] * beat;
+                        this.playTone(note[0], dur * 0.9, 'square', 0.17, t);
+                        this.playTone(note[0] * 2, dur * 0.4, 'triangle', 0.03, t);
+                    });
+
+                    // Oom-pah: bass on the beat, chord stab off it — the galop engine
+                    for (let i = 0; i < bars; i++) {
+                        const ch = BARS[i];
+                        const bt = i * 2 * beat;
+                        [0, 1].forEach(half => {
+                            const ht = bt + half * beat;
+                            this.playTone(half === 0 ? ch.bass : ch.fifth, beat * 0.5, 'sine', 0.22, ht);
+                            ch.triad.forEach(f => this.playTone(f, beat * 0.36, 'triangle', 0.05, ht + beat * 0.5));
+                            this.playTone(150, 0.07, 'sine', 0.2, ht);
+                            this.playTone(50, 0.13, 'sine', 0.17, ht);
+                            // Hats on every eighth keep the gallop moving
+                            this.playTone(8000, 0.02, 'square', half === 0 ? 0.045 : 0.028, ht);
+                            this.playTone(8000, 0.02, 'square', 0.022, ht + beat * 0.5);
+                        });
+                        // Snare on the second beat
+                        this.playTone(200, 0.05, 'square', 0.1, bt + beat);
+                    }
+
+                    this.musicMode = false;
+                    this.jingleTimeout = setTimeout(() => playLoop(), bars * 2 * beat * 1000);
+                };
+
+                playLoop();
+            }
+
+            // A marking is stamped, not chomped: a press, then the seal rings out
+            playMarking() {
+                if (!this.initialized || this.muted) return;
+                this.playTone(110, 0.09, 'sine', 0.3);            // the press
+                this.playTone(70, 0.14, 'triangle', 0.22);
+                [659.26, 830.61, 987.77, 1318.51].forEach((f, i) => {
+                    this.playTone(f, i === 3 ? 0.34 : 0.1, 'square', 0.2, 0.09 + i * 0.075);
+                    this.playTone(f * 2, 0.07, 'triangle', 0.06, 0.09 + i * 0.075);
+                });
+                for (let i = 0; i < 4; i++) {
+                    this.playTone(1800 + i * 320, 0.07, 'sine', 0.07, 0.42 + i * 0.06);
+                }
+            }
+
             playFanfare() {
                 if (!this.initialized || this.muted) {
                     this.currentTrack = 'fanfare';
@@ -424,6 +611,7 @@
 
                 const playLoop = () => {
                     if (!this.jinglePlaying || this.muted) return;
+                    this.musicMode = true;
 
                     // Timpani drum hits
                     const playTimpani = (time, accent = false) => {
@@ -514,6 +702,7 @@
                         time += note.dur;
                     });
 
+                    this.musicMode = false;
                     this.jingleTimeout = setTimeout(() => playLoop(), time * 1000);
                 };
 
@@ -612,12 +801,185 @@
         const soundManager = new SoundManager();
 
         // Mute button functionality
+        function labelMuteBtn() {
+            const btn = document.getElementById('mute-btn');
+            if (!btn) return;
+            const short = window.innerWidth < 640;
+            btn.textContent = soundManager.muted
+                ? (short ? 'Muted' : 'Sound on')
+                : (short ? 'Sound' : 'Sound off');
+        }
         document.getElementById('mute-btn').addEventListener('click', () => {
             soundManager.setMuted(!soundManager.muted);
-            const btn = document.getElementById('mute-btn');
-            const icon = btn.querySelector('.material-symbols-outlined');
-            icon.textContent = soundManager.muted ? 'volume_off' : 'volume_up';
+            labelMuteBtn();
         });
+        labelMuteBtn();
+
+        // ===== WINDOW MODE =====
+        // The board is sized from whatever height the window leaves it, so the
+        // game always fits exactly. This button removes the page around it:
+        // full screen where that is supported (every phone), and otherwise a
+        // popup window opened at the board's own proportions.
+        const BOARD_ASPECT = 19 / 22;
+        const isWindowMode = new URLSearchParams(location.search).get('mode') === 'window';
+        if (isWindowMode) document.body.classList.add('window-mode');
+
+        const windowBtn = document.getElementById('window-btn');
+        const canFullscreen = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+        const coarse = window.matchMedia('(pointer: coarse)').matches;
+
+        const narrow = () => window.innerWidth < 640;
+
+        function labelWindowBtn() {
+            if (!windowBtn) return;
+            const full = document.fullscreenElement || document.webkitFullscreenElement;
+            if (full) windowBtn.textContent = narrow() ? 'Exit' : 'Exit full screen';
+            else if (coarse || !window.open) windowBtn.textContent = narrow() ? 'Full' : 'Full screen';
+            else windowBtn.textContent = narrow() ? 'Window' : 'Play in a window';
+        }
+
+        function goFullscreen() {
+            const el = document.documentElement;
+            const req = el.requestFullscreen || el.webkitRequestFullscreen;
+            if (req) req.call(el).catch(() => {});
+        }
+
+        function openGameWindow() {
+            // Size the popup to the board plus the score strip, capped to the screen.
+            const chrome = 150;                                  // score strip + window frame
+            const h = Math.min(Math.round((screen.availHeight || 900) * 0.92), 940);
+            const w = Math.round((h - chrome) * BOARD_ASPECT) + 40;
+            const left = Math.round(((screen.availWidth || 1200) - w) / 2);
+            const top = Math.round(((screen.availHeight || 900) - h) / 2);
+            const popup = window.open(
+                'index.html?mode=window',
+                'compliance-man',
+                `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
+            );
+            if (!popup) goFullscreen();      // blocked: next best thing
+            else popup.focus();
+        }
+
+        if (windowBtn) {
+            labelWindowBtn();
+            windowBtn.addEventListener('click', () => {
+                const full = document.fullscreenElement || document.webkitFullscreenElement;
+                if (full) {
+                    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                } else if (coarse || isWindowMode || window.opener) {
+                    goFullscreen();                 // a phone, or already in its own window
+                } else if (!canFullscreen) {
+                    openGameWindow();
+                } else {
+                    openGameWindow();
+                }
+            });
+            ['fullscreenchange', 'webkitfullscreenchange'].forEach(e =>
+                document.addEventListener(e, labelWindowBtn));
+        }
+
+        // Phaser's FIT scaler needs a nudge when the viewport changes shape
+        // (rotation, a resized popup, a phone's address bar sliding away).
+        // The board's width comes from the height left to it, so the rows under
+        // it are given that same width — otherwise the score strip runs wider
+        // than the board it belongs to.
+        function syncShellWidth() {
+            const wrap = document.querySelector('.board-wrap');
+            const shell = document.querySelector('.shell');
+            if (!wrap || !shell) return;
+            const style = getComputedStyle(wrap);
+            const inner = wrap.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            if (inner <= 0) return;
+            const boardWidth = Math.floor(inner * BOARD_ASPECT);
+            const gutter = parseFloat(getComputedStyle(shell).paddingLeft) * 2;
+            shell.style.maxWidth = Math.min(660, boardWidth + gutter) + 'px';
+        }
+
+        let resizeTimer = null;
+        const refit = () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                syncShellWidth();
+                labelMuteBtn();
+                labelWindowBtn();
+                if (window.game && window.game.scale) window.game.scale.refresh();
+            }, 60);
+        };
+        requestAnimationFrame(syncShellWidth);
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(syncShellWidth);
+        // The board's height settles after fonts and Tailwind land, so follow it
+        try {
+            const wrapEl = document.querySelector('.board-wrap');
+            if (wrapEl && window.ResizeObserver) new ResizeObserver(syncShellWidth).observe(wrapEl);
+        } catch (e) { /* older browser: the resize handler covers it */ }
+        window.addEventListener('resize', refit);
+        window.addEventListener('orientationchange', refit);
+
+        // ===== BRAND THEME =====
+        // Certean: near-black ground, fine diagonal rules, one electric blue
+        // accent, everything else black / white / hairline.
+        const T = {
+            ink: 0x0F141D,
+            inkStr: '#0F141D',
+            wall: 0x1A2130,          // module blocks
+            steel: 0x6B80A0,         // hairlines and quiet labels
+            steelStr: '#98A0AE',
+            dimStr: '#7A8291',
+            labelStr: '#6B80A0',
+            dot: 0x8FA5CC,           // every collectible, steel on the board
+            dotStr: '#8FA5CC',
+            update: 0x7DA3E0,        // the one lit blue
+            updateStr: '#7DA3E0',
+            accent: 0xFFC53D,        // the gold of the player and every call to action
+            accentStr: '#FFC53D',
+            hairline: 0xFFFFFF,
+            white: 0xFFFFFF,
+            whiteStr: '#FFFFFF'
+        };
+        const CATEGORY_COLORS = {
+            standards: T.accentStr,
+            legislations: T.accentStr,
+            markings: T.accentStr,
+            requirements: 'rgba(255, 255, 255, 0.95)'
+        };
+        const STRIPE_PITCH = 7;
+        // Crisp on retina: render the board at device resolution and zoom the
+        // camera back, so world coordinates stay in maze pixels
+        const DPR = Math.min(Math.round(window.devicePixelRatio || 1), 2);
+
+        // Display (headline) and mono (label) type, set the way the site sets them
+        const display = (size) => ({ fontSize: size + 'px', fontFamily: 'Nabla' });
+        const figure = (size) => ({ fontSize: size + 'px', fontFamily: 'Nabla' });
+        const label = (size, color) => ({
+            fontSize: size + 'px', fontFamily: 'Geist Mono', fontStyle: '500', color: color || T.steelStr
+        });
+        // Mono labels are tracked wide; headlines are tracked tight
+        const track = (text, amount) => {
+            if (text.setLetterSpacing) text.setLetterSpacing(amount);
+            return text;
+        };
+        // Arcade blink for a call to action: swap the fill between gold and
+        // white at full opacity, so the dark label on it stays legible
+        const blinkButton = (scene, box) => {
+            let lit = true;
+            return scene.time.addEvent({
+                delay: 520,
+                loop: true,
+                callback: () => {
+                    lit = !lit;
+                    box.setFillStyle(lit ? T.accent : 0xFFFFFF);
+                }
+            });
+        };
+
+        // The lined background, as a tiling sprite behind everything
+        const addStripes = (scene, depth, alpha) => {
+            const sprite = scene.add.tileSprite(
+                0, 0, MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 'stripes'
+            ).setOrigin(0, 0).setDepth(depth);
+            if (alpha !== undefined) sprite.setAlpha(alpha);
+            return sprite;
+        };
 
         // Game Configuration
         const TILE_SIZE = 32;
@@ -653,6 +1015,29 @@
         // Derive dimensions from the maze itself so every row (incl. the bottom wall) renders
         const MAZE_WIDTH = MAZE[0].length;
         const MAZE_HEIGHT = MAZE.length;
+        const BOARD_W = MAZE_WIDTH * TILE_SIZE;
+        const BOARD_H = MAZE_HEIGHT * TILE_SIZE;
+
+        // The canvas is sized in device pixels; zooming the camera by the same
+        // factor keeps every coordinate in maze pixels while text and artwork
+        // are rasterised at full display resolution (no soft, upscaled type)
+        const fitCamera = (scene) => {
+            scene.cameras.main.setZoom(DPR);
+            scene.cameras.main.centerOn(BOARD_W / 2, BOARD_H / 2);
+        };
+
+        // Thumb steering: how far (in game px) the thumb has to travel from its
+        // anchor before a direction is read. Small enough to feel instant on a
+        // phone where the 608px board is scaled down to ~360px.
+        const TOUCH_DEADZONE = 18;
+
+        // Touch-first device? Drives which control tutorial is shown.
+        const isTouchDevice = () => {
+            try {
+                if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return true;
+            } catch (e) { /* ignore */ }
+            return (navigator.maxTouchPoints || 0) > 0 && !(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
+        };
 
         // Collectibles categorized by type
         const COLLECTIBLES = {
@@ -700,12 +1085,48 @@
             ]
         };
 
+        // Regulatory updates: real amendments and standard revisions that land
+        // on a product team's desk — safety, EMC, cyber, chemicals, ecodesign
+        const UPDATES = [
+            // Safety
+            'IEC 62368-1 A11', 'IEC 62368-1 Ed.4', 'IEC 60335-1 Ed.6 A2', 'IEC 61010-1 A2',
+            'EN 60335-2-40 rev', 'UL 62368-1 Ed.3', 'IEC 62368-3 A1',
+            // EMC & radio
+            'EN 55032 A11', 'EN IEC 61000-3-2 A1', 'EN 301 489-1 v2.2.3', 'CISPR 35 A1',
+            'FCC Part 15 amend.', 'EN 300 328 v2.2.2',
+            // Cybersecurity
+            'EN 18031-1:2024', 'EN 18031-2:2024', 'RED DA 2022/30', 'CRA Annex I rev',
+            'ETSI EN 303 645 v3', 'IEC 62443-4-2 Ed.2', 'ISO/IEC 27001 A1', 'UL 2900-2-2 rev',
+            'NIS2 technical spec',
+            // Quality & environment
+            'ISO 9001 revision', 'ISO 14001 amend.', 'ISO 45001 A1',
+            // Chemicals, batteries, ecodesign
+            'REACH SVHC update', 'RoHS exemption 7(c)', 'EU Battery Reg Art.7',
+            'ESPR delegated act', 'POPs Annex I rev', 'CA Prop 65 listing',
+            // Market access
+            'GPSR guidance rev', 'K-REACH annex rev', 'ANATEL Act 2.436',
+            'INMETRO Ord. 500 rev', 'KC Safety Act amend.', 'PSE Ordinance rev'
+        ];
+
         // Enemy flags (country flags)
         const FLAGS = [
             { name: 'EU', color: 0x003399, starColor: 0xFFCC00 },         // European Union
             { name: 'US', color: 0xBF0A30, stripeColor: 0xFFFFFF },       // United States
             { name: 'Brazil', color: 0x009739, diamondColor: 0xFEDD00 },  // Brazil
             { name: 'S.Korea', color: 0xFFFFFF, symbolColor: 0xCD2E3A }   // South Korea
+        ];
+
+        // The conformity marks of the four countries whose auditors chase you.
+        // Each one appears for a few seconds, then it is gone again — and
+        // taking one clears that country off your back for a moment.
+        const COUNTRY_MARKINGS = [
+            { code: 'CE',      country: 'EU',      bar: '#003399' },
+            { code: 'FCC',     country: 'US',      bar: '#BF0A30' },
+            { code: 'UL',      country: 'US',      bar: '#BF0A30' },
+            { code: 'INMETRO', country: 'Brazil',  bar: '#009739' },
+            { code: 'ANATEL',  country: 'Brazil',  bar: '#009739' },
+            { code: 'KC',      country: 'S.Korea', bar: '#CD2E3A' },
+            { code: 'KCC',     country: 'S.Korea', bar: '#CD2E3A' }
         ];
 
         class BootScene extends Phaser.Scene {
@@ -715,18 +1136,19 @@
 
             preload() {
                 // Show loading text
+                fitCamera(this);
                 const loadingText = this.add.text(
-                    this.cameras.main.centerX,
-                    this.cameras.main.centerY,
-                    'INITIALIZING...',
-                    { fontSize: '14px', color: '#10b981', fontFamily: 'Geist Mono' }
+                    BOARD_W / 2,
+                    BOARD_H / 2,
+                    'INITIALIZING',
+                    { fontSize: '11px', color: T.steelStr, fontFamily: 'Geist Mono', fontStyle: '500' }
                 ).setOrigin(0.5);
+                if (loadingText.setLetterSpacing) loadingText.setLetterSpacing(3);
 
-                // Load CertMan logo SVG as data URL to avoid CORS issues
-                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#10b981" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
+                // Load the Certean logo in gold - the player IS the logo
+                const svgData = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 230"><path fill="#3D63FF" d="M204.27,163.5l-75.74-43.85l75.29-43.9c3.31-1.93,5.32-5.49,5.27-9.32c-0.06-3.83-2.17-7.33-5.54-9.17l-90.31-49.17c-0.16-0.1-0.31-0.2-0.48-0.3c-3.22-1.92-7.21-2-10.5-0.22l-91.64,49.68c-3.38,1.83-5.5,5.34-5.55,9.18c0,0.05,0.01,0.1,0.01,0.15h-0.22v106.59h0.21c0,0.02,0,0.03,0,0.05c0.02,3.79,2.06,7.29,5.35,9.17l91.15,52.09c1.63,0.93,3.45,1.4,5.27,1.4c1.82,0,3.63-0.47,5.26-1.4l92.12-52.57c3.3-1.88,5.34-5.39,5.35-9.18C209.58,168.92,207.56,165.4,204.27,163.5z M26.08,84.86l60.2,34.85l-60.2,35.1V84.86z M96.27,206.99l-59.36-33.92l59.52-34.7L96.27,206.99z M96.51,101.11l-59.12-34.23l59.27-32.13L96.51,101.11z M117.89,34.79l58.97,32.1l-59.12,34.48L117.89,34.79z M117.49,206.95l0.16-69.07l60.01,34.74L117.49,206.95z"/></svg>`;
                 const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
-                const svgUrl = URL.createObjectURL(svgBlob);
-                this.load.svg('player', svgUrl, { width: 64, height: 64 });
+                this.load.svg('player', URL.createObjectURL(svgBlob), { width: 64, height: 64 });
 
                 // Handle load errors
                 this.load.on('loaderror', (file) => {
@@ -746,185 +1168,223 @@
             }
 
             createPlayerTextures() {
-                // Use loaded SVG as base or create fallback
-                const hasLoadedSvg = this.textures.exists('player');
-
-                // Create closed mouth texture (full logo)
-                if (hasLoadedSvg) {
-                    // Copy loaded texture to player_closed
-                    const frame = this.textures.getFrame('player');
-                    const canvas = this.textures.createCanvas('player_closed', frame.width, frame.height);
-                    canvas.draw(0, 0, frame.source.image);
-                    canvas.refresh();
-                } else {
-                    const g = this.make.graphics({ x: 0, y: 0, add: false });
-                    g.fillStyle(0x10b981, 1);
-                    g.beginPath();
-                    g.moveTo(16, 2); g.lineTo(30, 9); g.lineTo(30, 23);
-                    g.lineTo(16, 30); g.lineTo(2, 23); g.lineTo(2, 9);
-                    g.closePath();
-                    g.fillPath();
-                    g.fillStyle(0x0a0a0a, 1);
-                    g.beginPath();
-                    g.moveTo(16, 8); g.lineTo(24, 12); g.lineTo(24, 20);
-                    g.lineTo(16, 24); g.lineTo(8, 20); g.lineTo(8, 12);
-                    g.closePath();
-                    g.fillPath();
-                    g.fillStyle(0x10b981, 1);
-                    g.fillTriangle(16, 16, 8, 12, 8, 20);
-                    g.fillTriangle(16, 16, 16, 8, 8, 12);
-                    g.fillTriangle(16, 16, 8, 20, 16, 24);
-                    g.generateTexture('player_closed', 32, 32);
-                }
-
-                // Create open mouth texture (with wedge cut out on right side)
-                const g2 = this.make.graphics({ x: 0, y: 0, add: false });
-                g2.fillStyle(0x10b981, 1);
-                // Hexagon with mouth opening (wedge cut from right)
-                g2.beginPath();
-                g2.moveTo(16, 2);    // top
-                g2.lineTo(30, 9);    // top-right
-                g2.lineTo(16, 16);   // center (mouth top)
-                g2.lineTo(30, 23);   // bottom-right
-                g2.lineTo(16, 30);   // bottom
-                g2.lineTo(2, 23);    // bottom-left
-                g2.lineTo(2, 9);     // top-left
-                g2.closePath();
-                g2.fillPath();
-                // Inner structure (simplified for open mouth)
-                g2.fillStyle(0x0a0a0a, 1);
-                g2.beginPath();
-                g2.moveTo(16, 8); g2.lineTo(20, 11); g2.lineTo(16, 16);
-                g2.lineTo(20, 21); g2.lineTo(16, 24); g2.lineTo(8, 20); g2.lineTo(8, 12);
-                g2.closePath();
-                g2.fillPath();
-                g2.fillStyle(0x10b981, 1);
-                g2.fillTriangle(16, 16, 8, 12, 8, 20);
-                g2.fillTriangle(16, 16, 16, 8, 8, 12);
-                g2.fillTriangle(16, 16, 8, 20, 16, 24);
-                g2.generateTexture('player_open', 32, 32);
+                // Chomp frames carved out of the real logo artwork, so the
+                // player keeps the facet lines of the Certean mark
+                const makeFrame = (key, t) => {
+                    const size = 64;
+                    const tex = this.textures.createCanvas(key, size, size);
+                    const ctx = tex.getContext();
+                    if (this.textures.exists('player')) {
+                        ctx.drawImage(this.textures.get('player').getSourceImage(), 0, 0, size, size);
+                    } else {
+                        // Fallback: plain gold hexagon
+                        ctx.fillStyle = '#3D63FF';
+                        ctx.beginPath();
+                        ctx.moveTo(32, 4); ctx.lineTo(60, 18); ctx.lineTo(60, 46);
+                        ctx.lineTo(32, 60); ctx.lineTo(4, 46); ctx.lineTo(4, 18);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    if (t > 0) {
+                        // Carve the mouth wedge out of the artwork
+                        ctx.globalCompositeOperation = 'destination-out';
+                        ctx.beginPath();
+                        ctx.moveTo(30, 32);
+                        ctx.lineTo(70, 32 - t);
+                        ctx.lineTo(70, 32 + t);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.globalCompositeOperation = 'source-over';
+                    }
+                    tex.refresh();
+                };
+                makeFrame('player_0', 0);
+                makeFrame('player_1', 12);
+                makeFrame('player_2', 22);
             }
 
             createPlaceholderAssets() {
-                // Create textures for each collectible category
+                // Create textures for each collectible category.
+                // Blueprint system: shape encodes the category, steel on paper.
 
-                // Compliance Elements - vibrant green
+                // The lined ground: one diagonal hairline per tile, tiled across
+                // the board — the same rule pattern as the page behind it
+                if (!this.textures.exists('stripes')) {
+                    const stripeTex = this.textures.createCanvas('stripes', STRIPE_PITCH, STRIPE_PITCH);
+                    const sctx = stripeTex.getContext();
+                    sctx.strokeStyle = 'rgba(255, 255, 255, 0.09)';
+                    sctx.lineWidth = 1;
+                    sctx.beginPath();
+                    sctx.moveTo(-1, STRIPE_PITCH + 1);
+                    sctx.lineTo(STRIPE_PITCH + 1, -1);
+                    sctx.stroke();
+                    stripeTex.refresh();
+                }
+
+                // Shape encodes the category; all of them share the one steel tone
                 const gStd = this.make.graphics({ x: 0, y: 0, add: false });
-                gStd.fillStyle(0x141414, 1);
-                gStd.fillRect(2, 2, 12, 12);
-                gStd.lineStyle(1, 0x10b981, 0.7);
-                gStd.strokeRect(2, 2, 12, 12);
-                gStd.fillStyle(0x10b981, 0.9);
-                gStd.fillRect(5, 6, 6, 2);
-                gStd.fillRect(5, 9, 4, 2);
+                gStd.fillStyle(T.dot, 0.92);
+                gStd.fillRect(4, 4, 8, 8);
                 gStd.generateTexture('dot_standard', 16, 16);
 
-                // Legislations - blue
                 const gLeg = this.make.graphics({ x: 0, y: 0, add: false });
-                gLeg.fillStyle(0x141414, 1);
-                gLeg.fillRect(2, 2, 12, 12);
-                gLeg.lineStyle(1, 0x3b82f6, 0.7);
-                gLeg.strokeRect(2, 2, 12, 12);
-                gLeg.fillStyle(0x3b82f6, 0.9);
-                gLeg.fillRect(5, 5, 6, 1);
-                gLeg.fillRect(5, 7, 6, 1);
-                gLeg.fillRect(5, 9, 6, 1);
-                gLeg.fillRect(5, 11, 4, 1);
+                gLeg.lineStyle(1.5, T.dot, 0.92);
+                gLeg.strokeRect(4, 4, 8, 8);
                 gLeg.generateTexture('dot_legislation', 16, 16);
 
-                // Markings - amber/gold
-                const gMark = this.make.graphics({ x: 0, y: 0, add: false });
-                gMark.fillStyle(0x141414, 1);
-                gMark.fillCircle(8, 8, 6);
-                gMark.lineStyle(1, 0xf59e0b, 0.8);
-                gMark.strokeCircle(8, 8, 6);
-                gMark.fillStyle(0xf59e0b, 0.9);
-                gMark.fillCircle(8, 8, 3);
-                gMark.generateTexture('dot_marking', 16, 16);
+                // Markings are the one collectible that breaks the steel palette:
+                // each is its own icon — the mark's own letters stamped on a gold
+                // plate, with the issuing country's colour along the bottom.
+                COUNTRY_MARKINGS.forEach(mark => {
+                    const key = 'mark_' + mark.code;
+                    if (this.textures.exists(key)) return;
+                    // The plate is cut to the length of the code, so a long mark
+                    // like INMETRO stays as legible as a short one like CE.
+                    const H = 40;
+                    const face = size => '700 ' + size + 'px "Geist Mono", ui-monospace, monospace';
+                    const measure = this.textures.createCanvas('__measure', 8, 8).getContext();
+                    measure.font = face(22);
+                    const W = Math.ceil(measure.measureText(mark.code).width) + 22;
+                    this.textures.remove('__measure');
 
-                // Requirements - darker/muted (most common)
+                    const tex = this.textures.createCanvas(key, W, H);
+                    const ctx = tex.getContext();
+                    ctx.clearRect(0, 0, W, H);
+
+                    ctx.fillStyle = T.accentStr;
+                    if (ctx.roundRect) {
+                        ctx.beginPath();
+                        ctx.roundRect(1, 1, W - 2, H - 2, 7);
+                        ctx.fill();
+                    } else {
+                        ctx.fillRect(1, 1, W - 2, H - 2);
+                    }
+                    ctx.fillStyle = mark.bar;
+                    ctx.fillRect(4, H - 8, W - 8, 5);
+
+                    ctx.fillStyle = T.inkStr;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.font = face(22);
+                    ctx.fillText(mark.code, W / 2, H / 2 - 3);
+                    tex.refresh();
+                });
+
                 const gReq = this.make.graphics({ x: 0, y: 0, add: false });
-                gReq.fillStyle(0x1a1a1a, 1);
-                gReq.fillRect(3, 3, 10, 10);
-                gReq.fillStyle(0x444444, 0.8);
-                gReq.fillRect(5, 5, 6, 1);
-                gReq.fillRect(5, 7, 4, 1);
-                gReq.fillRect(5, 9, 5, 1);
+                gReq.fillStyle(T.dot, 0.38);
+                gReq.fillRect(6, 6, 4, 4);
                 gReq.generateTexture('dot_requirement', 16, 16);
 
                 // Create flag enemies
+                const starPoints = (cx, cy, rOuter, rInner, n = 5) => {
+                    const pts = [];
+                    for (let k = 0; k < n * 2; k++) {
+                        const r = k % 2 === 0 ? rOuter : rInner;
+                        const a = (k * Math.PI) / n - Math.PI / 2;
+                        pts.push(new Phaser.Geom.Point(cx + Math.cos(a) * r, cy + Math.sin(a) * r));
+                    }
+                    return pts;
+                };
+
                 FLAGS.forEach((flag, i) => {
                     const g = this.make.graphics({ x: 0, y: 0, add: false });
+                    const X = 4, Y = 12, W = 56, H = 40; // flag face within a 64px tile
 
-                    // Base rectangle
-                    g.fillStyle(flag.color, 1);
-                    g.fillRect(2, 4, 28, 24);
-
-                    // Add distinctive element based on flag
                     if (flag.name === 'EU') {
-                        // EU stars circle
-                        g.fillStyle(flag.starColor, 1);
-                        for (let j = 0; j < 8; j++) {
-                            const angle = (j / 8) * Math.PI * 2;
-                            const x = 16 + Math.cos(angle) * 8;
-                            const y = 16 + Math.sin(angle) * 6;
-                            g.fillCircle(x, y, 2);
+                        g.fillStyle(0x003399, 1);
+                        g.fillRect(X, Y, W, H);
+                        g.fillStyle(0xFFCC00, 1);
+                        for (let j = 0; j < 12; j++) {
+                            const a = (j / 12) * Math.PI * 2;
+                            g.fillPoints(starPoints(32 + Math.cos(a) * 13, 32 + Math.sin(a) * 13, 3, 1.2), true);
                         }
                     } else if (flag.name === 'US') {
-                        // US stripes
-                        g.fillStyle(flag.stripeColor, 1);
-                        for (let j = 0; j < 4; j++) {
-                            g.fillRect(2, 6 + j * 6, 28, 2);
+                        const stripeH = H / 13;
+                        for (let j = 0; j < 13; j++) {
+                            g.fillStyle(j % 2 === 0 ? 0xB22234 : 0xFFFFFF, 1);
+                            g.fillRect(X, Y + j * stripeH, W, stripeH + 0.5);
                         }
                         g.fillStyle(0x3C3B6E, 1);
-                        g.fillRect(2, 4, 12, 12);
+                        g.fillRect(X, Y, W * 0.44, stripeH * 7);
+                        g.fillStyle(0xFFFFFF, 1);
+                        for (let r = 0; r < 4; r++) {
+                            for (let c = 0; c < 5; c++) {
+                                g.fillCircle(X + 3.5 + c * 4.6 + (r % 2) * 2.3, Y + 3 + r * 5.2, 1.1);
+                            }
+                        }
                     } else if (flag.name === 'Brazil') {
-                        // Brazil diamond
-                        g.fillStyle(flag.diamondColor, 1);
+                        g.fillStyle(0x009739, 1);
+                        g.fillRect(X, Y, W, H);
+                        g.fillStyle(0xFEDD00, 1);
                         g.beginPath();
-                        g.moveTo(16, 6);
-                        g.lineTo(28, 16);
-                        g.lineTo(16, 26);
-                        g.lineTo(4, 16);
+                        g.moveTo(32, Y + 4);
+                        g.lineTo(X + W - 5, 32);
+                        g.lineTo(32, Y + H - 4);
+                        g.lineTo(X + 5, 32);
                         g.closePath();
                         g.fillPath();
-                        g.fillStyle(0x002776, 1);
-                        g.fillCircle(16, 16, 6);
+                        g.fillStyle(0x012169, 1);
+                        g.fillCircle(32, 32, 9);
+                        g.lineStyle(1.8, 0xFFFFFF, 1);
+                        g.beginPath();
+                        g.arc(32, 46, 19, -Math.PI * 0.7, -Math.PI * 0.3);
+                        g.strokePath();
                     } else if (flag.name === 'S.Korea') {
-                        // South Korea yin-yang
-                        g.fillStyle(flag.symbolColor, 1);
-                        g.fillCircle(16, 16, 8);
-                        g.fillStyle(0x0047A0, 1);
-                        g.slice(16, 16, 8, Phaser.Math.DegToRad(90), Phaser.Math.DegToRad(270));
+                        g.fillStyle(0xFFFFFF, 1);
+                        g.fillRect(X, Y, W, H);
+                        // Taegeuk
+                        g.fillStyle(0xCD2E3A, 1);
+                        g.slice(32, 32, 9, Math.PI, Math.PI * 2, false);
                         g.fillPath();
+                        g.fillStyle(0x0047A0, 1);
+                        g.slice(32, 32, 9, 0, Math.PI, false);
+                        g.fillPath();
+                        g.fillStyle(0xCD2E3A, 1);
+                        g.fillCircle(32 - 4.5, 32, 4.5);
+                        g.fillStyle(0x0047A0, 1);
+                        g.fillCircle(32 + 4.5, 32, 4.5);
+                        // Trigram bars in the corners
+                        g.fillStyle(0x141414, 1);
+                        [[X + 6, Y + 6], [X + W - 14, Y + 6], [X + 6, Y + H - 13], [X + W - 14, Y + H - 13]].forEach(pt => {
+                            for (let b = 0; b < 3; b++) {
+                                g.fillRect(pt[0], pt[1] + b * 2.6, 8, 1.4);
+                            }
+                        });
                     }
 
-                    g.generateTexture('flag_' + i, 32, 32);
+                    // Hairline frame so light flags read on the dark board
+                    g.lineStyle(1, 0xFFFFFF, 0.35);
+                    g.strokeRect(X + 0.5, Y + 0.5, W - 1, H - 1);
+
+                    g.generateTexture('flag_' + i, 64, 64);
                 });
 
-                // Create wall texture - gray fill with black border
-                const wallGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-                wallGraphics.fillStyle(0x1a1a1a, 1);
-                wallGraphics.fillRect(0, 0, 32, 32);
-                wallGraphics.lineStyle(1, 0x000000, 1);
-                wallGraphics.strokeRect(1, 1, 30, 30);
-                wallGraphics.generateTexture('wall', 32, 32);
+                // Wall module: a plain block inset from its tile, no border —
+                // the gap between modules does the separating. Drawn at device
+                // resolution so the edges stay crisp, displayed back at one tile.
+                if (!this.textures.exists('wall')) {
+                    const WT = TILE_SIZE * DPR;
+                    const inset = 2 * DPR;
+                    const box = WT - inset * 2;
+                    const wallTex = this.textures.createCanvas('wall', WT, WT);
+                    const wctx = wallTex.getContext();
+                    wctx.fillStyle = 'rgba(26, 33, 48, 0.85)';
+                    wctx.fillRect(inset, inset, box, box);
+                    wallTex.refresh();
+                }
 
-                // Create "update" dot texture - vibrant green cyber look
-                const updateGraphics = this.make.graphics({ x: 0, y: 0, add: false });
-                // Outer glow
-                updateGraphics.fillStyle(0x10b981, 0.3);
-                updateGraphics.fillCircle(12, 12, 11);
-                // Middle ring
-                updateGraphics.fillStyle(0x10b981, 0.6);
-                updateGraphics.fillCircle(12, 12, 8);
-                // Inner core
-                updateGraphics.fillStyle(0x10b981, 1);
-                updateGraphics.fillCircle(12, 12, 5);
-                // Bright center
-                updateGraphics.fillStyle(0xFFFFFF, 1);
-                updateGraphics.fillCircle(12, 12, 2);
-                updateGraphics.generateTexture('update_dot', 24, 24);
+                // "Update" dot - the single electric accent on the board,
+                // drawn as a square target rather than a blob
+                const gUpd = this.make.graphics({ x: 0, y: 0, add: false });
+                gUpd.fillStyle(T.update, 0.15);
+                gUpd.fillCircle(12, 12, 11);
+                gUpd.fillStyle(T.update, 0.4);
+                gUpd.fillCircle(12, 12, 8);
+                gUpd.fillStyle(T.update, 1);
+                gUpd.fillCircle(12, 12, 5);
+                gUpd.fillStyle(T.ink, 1);
+                gUpd.fillCircle(12, 12, 2);
+                gUpd.generateTexture('update_dot', 24, 24);
             }
         }
 
@@ -934,15 +1394,16 @@
             }
 
             create() {
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                fitCamera(this);
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
                 // Initialize sound on first real user gesture (mousemove is not a
                 // valid activation gesture — the AudioContext would stay suspended)
                 const initSound = () => {
                     if (soundManager.initialized) return;
                     soundManager.init();
-                    soundManager.playSpaceHero();
+                    soundManager.playAnthem();
                     ['keydown', 'click', 'touchstart', 'mousedown'].forEach(evt => {
                         document.removeEventListener(evt, initSound);
                     });
@@ -954,67 +1415,67 @@
                 // Keep SPACE from scrolling the page
                 this.input.keyboard.addCapture('SPACE');
 
-                // Main title with entrance animation
-                const mainTitle = this.add.text(centerX, centerY - 120, 'COMPLIANCE-MAN™', {
-                    fontSize: '64px',
-                    fontFamily: 'Honk'
-                }).setOrigin(0.5).setScale(0);
+                // Lined ground
+                addStripes(this, -20);
+
+                // Category label above the title, with the brand's square bullet
+                const bullet = this.add.rectangle(centerX - 86, centerY - 150, 7, 7, T.accent).setAlpha(0);
+                const eyebrow = track(this.add.text(centerX - 72, centerY - 150, 'AI BUILT FOR COMPLIANCE',
+                    label(10)).setOrigin(0, 0.5).setAlpha(0), 2.2);
 
                 this.tweens.add({
-                    targets: mainTitle,
-                    scale: 1,
-                    duration: 500,
-                    ease: 'Back.easeOut'
+                    targets: [eyebrow, bullet],
+                    alpha: 1,
+                    duration: 400,
+                    delay: 100
                 });
 
-                // Subtle breathing animation
+                // Main title
+                const mainTitle = this.add.text(centerX, centerY - 104, 'COMPLIANCE-MAN',
+                    display(50)).setOrigin(0.5).setAlpha(0);
+
                 this.tweens.add({
                     targets: mainTitle,
-                    scale: { from: 1, to: 1.02 },
-                    duration: 2000,
-                    yoyo: true,
-                    repeat: -1,
-                    ease: 'Sine.easeInOut',
-                    delay: 500
+                    alpha: 1,
+                    y: centerY - 101,
+                    duration: 500,
+                    ease: 'Cubic.easeOut'
                 });
 
                 // Tagline
-                const tagline = this.add.text(centerX, centerY - 55, 'COMPLY OR PAY!', {
-                    fontSize: '24px',
+                const tagline = this.add.text(centerX, centerY - 58, 'Comply or pay.', {
+                    fontSize: '16px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#10b981',
-                    letterSpacing: '4px'
+                    color: '#B4B8BF'
                 }).setOrigin(0.5).setAlpha(0);
 
                 this.tweens.add({
                     targets: tagline,
                     alpha: 1,
-                    y: centerY - 60,
                     duration: 400,
                     delay: 300
                 });
 
-                // Simple divider
-                const divider = this.add.rectangle(centerX, centerY - 30, 100, 2, 0x10b981).setAlpha(0);
+                // Full-width hairline rule, the way the site separates blocks
+                const divider = this.add.rectangle(centerX, centerY - 26, 300, 1, 0xFFFFFF).setAlpha(0);
                 this.tweens.add({
                     targets: divider,
-                    alpha: 0.6,
+                    alpha: 0.12,
                     duration: 400,
                     delay: 500
                 });
 
                 // Instructions - clean and simple
-                const inst1 = this.add.text(centerX, centerY + 15, '◆ Collect compliance elements and updates', {
-                    fontSize: '18px',
-                    fontFamily: 'Geist',
-                    color: '#10b981'
+                const inst1 = this.add.text(centerX, centerY + 6, 'Collect every requirement, standard and marking.', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#B4B8BF'
                 }).setOrigin(0.5).setAlpha(0);
 
-                const inst2 = this.add.text(centerX, centerY + 50, '☠ Avoid regulatory auditors', {
-                    fontSize: '18px',
-                    fontFamily: 'Geist',
-                    color: '#ef4444'
+                const inst2 = this.add.text(centerX, centerY + 32, 'Avoid the auditors. Clear updates before they pile up.', {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    color: '#8A8F98'
                 }).setOrigin(0.5).setAlpha(0);
 
                 this.tweens.add({
@@ -1024,12 +1485,11 @@
                     delay: 600
                 });
 
-                // Controls
-                const controls = this.add.text(centerX, centerY + 95, 'WASD or ARROWS to move', {
-                    fontSize: '14px',
-                    fontFamily: 'Geist Mono',
-                    color: '#444444'
-                }).setOrigin(0.5).setAlpha(0);
+                // Controls: a label plus a looping animated demo of how to steer
+                const touchDevice = isTouchDevice();
+                const controls = track(this.add.text(centerX, centerY + 72,
+                    touchDevice ? 'SLIDE YOUR THUMB TO STEER' : 'WASD OR ARROW KEYS TO STEER',
+                    label(10, T.dimStr)).setOrigin(0.5).setAlpha(0), 2);
 
                 this.tweens.add({
                     targets: controls,
@@ -1038,38 +1498,164 @@
                     delay: 700
                 });
 
-                // Start prompt with pulse
-                const startButton = this.add.text(centerX, centerY + 150, '[ CLICK OR PRESS SPACE TO START ]', {
-                    fontSize: '20px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#10b981'
-                }).setOrigin(0.5).setAlpha(0).setInteractive({ useHandCursor: true });
+                const demo = this.createControlsDemo(centerX, centerY + 134, touchDevice);
+                demo.setAlpha(0);
+                this.tweens.add({
+                    targets: demo,
+                    alpha: 1,
+                    duration: 400,
+                    delay: 800
+                });
+
+                // Start prompt: the site's blue CTA, with a cursor that blinks
+                const startLabel = track(this.add.text(centerX, centerY + 212,
+                    (touchDevice ? 'TAP TO START' : 'PRESS SPACE TO START') + '   \u2192',
+                    label(11, '#141414')).setOrigin(0.5), 2);
+                const startBox = this.add.rectangle(centerX, centerY + 212,
+                    startLabel.width + 44, 42, T.accent);
+                startLabel.setDepth(2);
+                const startButton = this.add.container(0, 0, [startBox, startLabel]).setAlpha(0);
+                startBox.setInteractive({ useHandCursor: true });
 
                 this.tweens.add({
                     targets: startButton,
                     alpha: 1,
                     duration: 400,
                     delay: 900,
-                    onComplete: () => {
-                        this.tweens.add({
-                            targets: startButton,
-                            alpha: 0.4,
-                            duration: 700,
-                            yoyo: true,
-                            repeat: -1
-                        });
-                    }
+                    onComplete: () => blinkButton(this, startBox)
                 });
 
                 // Start game on space or click
+                let started = false;
                 const startGame = () => {
+                    if (started) return;
+                    started = true;
                     soundManager.init();
                     soundManager.playStartGame();
                     this.scene.start('GameScene');
                 };
                 this.input.keyboard.once('keydown-SPACE', startGame);
-                startButton.once('pointerdown', startGame);
+                startBox.once('pointerdown', startGame);
+                this.input.once('pointerdown', startGame);
+            }
+
+            // Animated how-to-play strip: on the left the player mirrors each
+            // move, on the right either a thumb slides across a pad (touch) or
+            // the arrow keys light up (keyboard). Loops until the game starts.
+            createControlsDemo(x, y, touch) {
+                const c = this.add.container(x, y);
+                const DIRS = {
+                    up:    { dx: 0,  dy: -1, angle: -90 },
+                    right: { dx: 1,  dy: 0,  angle: 0 },
+                    down:  { dx: 0,  dy: 1,  angle: 90 },
+                    left:  { dx: -1, dy: 0,  angle: 180 }
+                };
+                const ORDER = ['right', 'down', 'left', 'up'];
+
+                // Left: the player
+                const PX = -112;
+                const pad = this.add.rectangle(PX, 0, 76, 76, T.wall, 0.75).setStrokeStyle(1, T.hairline, 0.12);
+                const player = this.add.image(PX, 0, 'player_1').setDisplaySize(30, 30);
+                c.add([pad, player]);
+
+                // Faint guide arrows around the player
+                [['up', 0, -28], ['right', 28, 0], ['down', 0, 28], ['left', -28, 0]].forEach(([k, ax, ay]) => {
+                    const tri = this.add.triangle(PX + ax, ay, 0, 0, 8, 4, 0, 8, T.white, 0.28).setAngle(DIRS[k].angle);
+                    c.add(tri);
+                });
+
+                // Right: the input
+                const IX = 36;
+                const zone = this.add.rectangle(IX, 0, 170, 90, T.wall, 0.75).setStrokeStyle(1, T.hairline, 0.12);
+                c.add(zone);
+
+                let playInput;
+                if (touch) {
+                    const DIST = 38;
+                    const ring = this.add.circle(IX, 0, 17).setStrokeStyle(1.5, 0xFFFFFF, 0.4).setAlpha(0);
+                    const trail = this.add.rectangle(IX, 0, DIST, 3, T.accent, 0.6).setOrigin(0, 0.5).setAlpha(0);
+                    const thumb = this.add.circle(IX, 0, 13, 0xFFFFFF, 0.9).setAlpha(0);
+                    const hint = track(this.add.text(IX, 32, 'SLIDE', label(8, T.dimStr)).setOrigin(0.5), 2);
+                    c.add([ring, trail, thumb, hint]);
+
+                    playInput = (d, onDone) => {
+                        ring.setPosition(IX, 0).setAlpha(0).setScale(0.6);
+                        thumb.setPosition(IX, 0).setAlpha(0).setScale(0.8);
+                        trail.setPosition(IX, 0).setAngle(d.angle).setScale(0, 1).setAlpha(0);
+                        // Touch down
+                        this.tweens.add({
+                            targets: [ring, thumb], alpha: 1, scale: 1, duration: 180, ease: 'Cubic.easeOut',
+                            onComplete: () => {
+                                if (!c.scene) return;
+                                trail.setAlpha(1);
+                                // Slide the thumb, leaving a trail from the anchor
+                                this.tweens.add({ targets: thumb, x: IX + d.dx * DIST, y: d.dy * DIST, duration: 320, ease: 'Cubic.easeInOut' });
+                                this.tweens.add({
+                                    targets: trail, scaleX: 1, duration: 320, ease: 'Cubic.easeInOut',
+                                    onComplete: () => {
+                                        if (!c.scene) return;
+                                        // Lift
+                                        this.tweens.add({ targets: [ring, thumb, trail], alpha: 0, duration: 260, delay: 220, onComplete: onDone });
+                                    }
+                                });
+                            }
+                        });
+                    };
+                } else {
+                    const K = 24, G = 5;
+                    const layout = {
+                        up:    [IX, -(K + G) / 2],
+                        left:  [IX - (K + G), (K + G) / 2],
+                        down:  [IX, (K + G) / 2],
+                        right: [IX + (K + G), (K + G) / 2]
+                    };
+                    const glyph = { up: '\u2191', down: '\u2193', left: '\u2190', right: '\u2192' };
+                    const keys = {};
+                    Object.keys(layout).forEach(k => {
+                        const [kx, ky] = layout[k];
+                        const cap = this.add.rectangle(kx, ky, K, K, T.wall, 1).setStrokeStyle(1, T.hairline, 0.2);
+                        const glow = this.add.rectangle(kx, ky, K, K, T.accent, 1).setAlpha(0);
+                        const glyphText = this.add.text(kx, ky, glyph[k], {
+                            fontSize: '13px', fontFamily: 'Geist Mono', color: '#B4B8BF'
+                        }).setOrigin(0.5);
+                        c.add([cap, glow, glyphText]);
+                        keys[k] = { cap, glow, label: glyphText };
+                    });
+
+                    playInput = (d, onDone) => {
+                        const k = keys[d.key];
+                        this.tweens.add({ targets: [k.cap, k.glow, k.label], scale: 0.88, duration: 120, yoyo: true, hold: 420 });
+                        this.tweens.add({
+                            targets: k.glow, alpha: 1, duration: 120, yoyo: true, hold: 420,
+                            onStart: () => k.label.setColor('#FFFFFF'),
+                            onComplete: () => { k.label.setColor('#B4B8BF'); onDone(); }
+                        });
+                    };
+                }
+
+                // Sequencer: input on the right, player answers on the left
+                let i = 0;
+                const step = () => {
+                    if (!c.scene) return;
+                    const key = ORDER[i++ % ORDER.length];
+                    const d = Object.assign({ key }, DIRS[key]);
+
+                    player.setAngle(d.angle).setFlipY(key === 'left');
+                    this.tweens.add({
+                        targets: player, x: PX + d.dx * 11, y: d.dy * 11,
+                        duration: 320, delay: 180, yoyo: true, ease: 'Cubic.easeInOut'
+                    });
+                    let f = 0;
+                    this.time.addEvent({
+                        delay: 80, repeat: 6, startAt: 0,
+                        callback: () => { if (c.scene) player.setTexture((++f % 2) ? 'player_2' : 'player_1'); }
+                    });
+
+                    playInput(d, () => { if (c.scene) this.time.delayedCall(260, step); });
+                };
+                this.time.delayedCall(900, step);
+
+                return c;
             }
         }
 
@@ -1089,14 +1675,20 @@
                 this.invulnerable = false;
                 this.currentDirection = null;
                 this.inputDirection = null;
+                this.touchHeld = null;         // direction while the thumb is down
+                this.queuedDirection = null;   // last key press or swipe, consumed by the next turn
+                this.swipeOrigin = null;
+                this.touchPointerId = null;
                 this.validSpawnPositions = [];
+                this.openPositions = [];
                 this.updateDots = [];
+                this.updateNameIndex = Math.floor(Math.random() * UPDATES.length);
                 this.activeUpdates = 0; // Counter for active update dots
                 this.totalUpdatesAdded = 0; // Total updates spawned this game (max 15)
                 // Chomping animation state
-                this.mouthOpen = false;
+                this.chompStep = 0;
                 this.chompTimer = 0;
-                this.chompInterval = 100; // ms between chomp frames
+                this.chompInterval = 70; // ms between chomp frames
                 // Category counts
                 this.counts = {
                     standards: 0,
@@ -1107,9 +1699,14 @@
             }
 
             create() {
-                // Start/continue the background music (loops automatically)
+                fitCamera(this);
+                this.physics.world.setBounds(0, 0, BOARD_W, BOARD_H);
+
+                // Start the background music. Anything left over from a win or
+                // game-over sting is cut first, so a restart never doubles up.
                 soundManager.init();
-                soundManager.playSpaceHero();
+                if (soundManager.currentTrack !== 'anthem') soundManager.stopJingle();
+                soundManager.playAnthem();
 
                 // Reset sidebar counts
                 this.updateSidebarCounts();
@@ -1132,11 +1729,58 @@
                 // Setup input
                 this.input.keyboard.addCapture('SPACE');
                 this.cursors = this.input.keyboard.createCursorKeys();
+
+                // Touch: a floating thumb-stick. Put a thumb down anywhere on
+                // the board and slide: the dominant axis of the drag is the
+                // direction. The anchor re-centres after every read, so a
+                // change of direction mid-slide registers immediately.
+                this.touchStick = this.createTouchStick();
+                this.input.on('pointerdown', p => {
+                    if (this.gameOver) return;
+                    if (this.swipeOrigin && p.id !== this.touchPointerId) return; // ignore a second finger
+                    this.touchPointerId = p.id;
+                    this.swipeOrigin = { x: p.worldX, y: p.worldY };
+                    if (p.wasTouch) this.touchStick.show(p.worldX, p.worldY);
+                });
+                this.input.on('pointermove', p => {
+                    if (!p.isDown || !this.swipeOrigin || p.id !== this.touchPointerId) return;
+                    this.touchStick.follow(p.worldX, p.worldY);
+                    const dx = p.worldX - this.swipeOrigin.x;
+                    const dy = p.worldY - this.swipeOrigin.y;
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) < TOUCH_DEADZONE) return;
+                    const dir = Math.abs(dx) > Math.abs(dy)
+                        ? (dx > 0 ? 'right' : 'left')
+                        : (dy > 0 ? 'down' : 'up');
+                    this.touchHeld = dir;
+                    this.queuedDirection = dir;
+                    this.swipeOrigin = { x: p.worldX, y: p.worldY };
+                    this.touchStick.anchor(p.worldX, p.worldY);
+                });
+                const release = p => {
+                    if (p.id !== this.touchPointerId) return;
+                    this.swipeOrigin = null;
+                    this.touchPointerId = null;
+                    this.touchHeld = null; // the last swipe stays queued until used
+                    this.touchStick.hide();
+                };
+                this.input.on('pointerup', release);
+                this.input.on('pointerupoutside', release);
                 this.wasd = this.input.keyboard.addKeys({
                     up: Phaser.Input.Keyboard.KeyCodes.W,
                     down: Phaser.Input.Keyboard.KeyCodes.S,
                     left: Phaser.Input.Keyboard.KeyCodes.A,
                     right: Phaser.Input.Keyboard.KeyCodes.D
+                });
+
+                // Remember every key press as an event, not by polling, so even
+                // a tap shorter than one frame is queued for the next turn
+                const KEY_DIRECTIONS = {
+                    ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+                    KeyW: 'up', KeyS: 'down', KeyA: 'left', KeyD: 'right'
+                };
+                this.input.keyboard.on('keydown', event => {
+                    const dir = KEY_DIRECTIONS[event.code];
+                    if (dir && !this.gameOver) this.queuedDirection = dir;
                 });
 
                 // Collisions
@@ -1146,19 +1790,45 @@
                 this.physics.add.overlap(this.player, this.enemies, this.hitEnemy, null, this);
             }
 
+            // Subtle on-board indicator for thumb steering: a ring at the
+            // anchor and a dot under the finger. Only shown for touch input.
+            createTouchStick() {
+                const ring = this.add.circle(0, 0, 22).setStrokeStyle(1.5, 0xFFFFFF, 0.35).setDepth(30).setVisible(false);
+                const dot = this.add.circle(0, 0, 9, 0xFFFFFF, 0.45).setDepth(30).setVisible(false);
+                return {
+                    show: (x, y) => {
+                        ring.setPosition(x, y).setStrokeStyle(1.5, 0xFFFFFF, 0.35).setVisible(true);
+                        dot.setPosition(x, y).setVisible(true);
+                    },
+                    follow: (x, y) => dot.setPosition(x, y),
+                    anchor: (x, y) => {
+                        if (!ring.visible) return;
+                        ring.setPosition(x, y).setStrokeStyle(1.5, T.accent, 0.6);
+                    },
+                    hide: () => { ring.setVisible(false); dot.setVisible(false); }
+                };
+            }
+
             createMaze() {
+                // Lined ground first, maze drawn on top
+                addStripes(this, -20);
                 this.walls = this.physics.add.staticGroup();
 
+                // Every wall tile is its own discrete module, drawn from the
+                // dotted-border texture
                 for (let y = 0; y < MAZE_HEIGHT; y++) {
                     for (let x = 0; x < MAZE_WIDTH; x++) {
-                        if (MAZE[y][x] === 1) {
-                            const wall = this.walls.create(
-                                x * TILE_SIZE + TILE_SIZE / 2,
-                                y * TILE_SIZE + TILE_SIZE / 2,
-                                'wall'
-                            );
-                            wall.setDisplaySize(TILE_SIZE, TILE_SIZE);
-                        }
+                        if (MAZE[y][x] !== 1) continue;
+                        const wall = this.walls.create(
+                            x * TILE_SIZE + TILE_SIZE / 2,
+                            y * TILE_SIZE + TILE_SIZE / 2,
+                            'wall'
+                        );
+                        // Static bodies do not follow a scale change on their own:
+                        // the texture is drawn at device resolution, so the body
+                        // has to be rebuilt at the displayed tile size
+                        wall.setDisplaySize(TILE_SIZE, TILE_SIZE).setDepth(-10);
+                        wall.refreshBody();
                     }
                 }
             }
@@ -1166,13 +1836,13 @@
             createCollectibles() {
                 this.dots = this.physics.add.group();
 
-                // Distribution: 50% requirements, 20% compliance elements, 20% legislations, 10% markings
+                // Markings are not scattered here any more: they appear one at a
+                // time, for a few seconds, and are gone again (see spawnMarking).
                 const getRandomCategory = () => {
                     const rand = Math.random();
                     if (rand < 0.50) return 'requirements';
-                    if (rand < 0.70) return 'standards';
-                    if (rand < 0.90) return 'legislations';
-                    return 'markings';
+                    if (rand < 0.75) return 'standards';
+                    return 'legislations';
                 };
 
                 const categoryIndices = {
@@ -1184,6 +1854,11 @@
 
                 for (let y = 0; y < MAZE_HEIGHT; y++) {
                     for (let x = 0; x < MAZE_WIDTH; x++) {
+                        // Every open tile that is not the pen can carry a mark,
+                        // including the bare corridors the dots never sit on.
+                        if (MAZE[y][x] !== 1 && MAZE[y][x] !== 3) {
+                            this.openPositions.push({ x, y });
+                        }
                         if (MAZE[y][x] === 2) {
                             // Store valid spawn positions for later updates
                             this.validSpawnPositions.push({ x, y });
@@ -1196,7 +1871,6 @@
                             const textureMap = {
                                 standards: 'dot_standard',
                                 legislations: 'dot_legislation',
-                                markings: 'dot_marking',
                                 requirements: 'dot_requirement'
                             };
 
@@ -1207,7 +1881,8 @@
                             );
                             dot.itemName = items[itemIndex];
                             dot.category = category;
-                            dot.setDisplaySize(category === 'requirements' ? 12 : 14, category === 'requirements' ? 12 : 14);
+                            const dotSize = category === 'requirements' ? 12 : 15;
+                            dot.setDisplaySize(dotSize, dotSize);
                             dot.isUpdate = false;
                             this.totalDots++;
                             this.initialDots++;
@@ -1222,6 +1897,116 @@
                     callbackScope: this,
                     loop: true
                 });
+
+                // ...and the marks, which come and go on their own clock
+                this.activeMarking = null;
+                this.markingLife = null;
+                this.scheduleMarking(true);
+            }
+
+            scheduleMarking(first) {
+                if (this.gameOver) return;
+                const delay = first ? 7000 : Phaser.Math.Between(10000, 17000);
+                this.markingTimer = this.time.delayedCall(delay, () => this.spawnMarking(), [], this);
+            }
+
+            /**
+             * A conformity mark surfaces somewhere on the board, stays about ten
+             * seconds (blinking out the last two), then is gone. One at a time,
+             * worth a detour, and it never counts towards the board's compliance
+             * total — only towards your score.
+             */
+            spawnMarking() {
+                if (this.gameOver) return;
+                if (this.activeMarking && this.activeMarking.active) { this.scheduleMarking(); return; }
+
+                const occupied = new Set();
+                this.dots.getChildren().forEach(d =>
+                    occupied.add(Math.floor(d.x / TILE_SIZE) + ',' + Math.floor(d.y / TILE_SIZE)));
+                const playerTile = Math.floor(this.player.x / TILE_SIZE) + ',' + Math.floor(this.player.y / TILE_SIZE);
+                const free = this.openPositions.filter(pos => {
+                    const key = pos.x + ',' + pos.y;
+                    return !occupied.has(key) && key !== playerTile;
+                });
+                if (!free.length) { this.scheduleMarking(); return; }
+
+                const pos = Phaser.Math.RND.pick(free);
+                const mark = Phaser.Math.RND.pick(COUNTRY_MARKINGS);
+                const dot = this.dots.create(
+                    pos.x * TILE_SIZE + TILE_SIZE / 2,
+                    pos.y * TILE_SIZE + TILE_SIZE / 2,
+                    'mark_' + mark.code
+                );
+                const plate = this.textures.get('mark_' + mark.code).getSourceImage();
+                const iconH = 18;
+                dot.setDisplaySize(Math.min(52, Math.round(iconH * plate.width / plate.height)), iconH);
+                dot.setDepth(7);
+                dot.category = 'markings';
+                dot.itemName = mark.code;
+                dot.mark = mark;
+                dot.isUpdate = false;
+                this.activeMarking = dot;
+                this.totalDots++;
+                this.progressText.setText(this.collectedDots + '/' + this.totalDots);
+
+                this.tweens.add({
+                    targets: dot,
+                    scaleX: dot.scaleX * 1.14,
+                    scaleY: dot.scaleY * 1.14,
+                    duration: 560,
+                    yoyo: true,
+                    repeat: -1,
+                    ease: 'Sine.easeInOut'
+                });
+
+                const LIFE = 10000;
+                this.time.delayedCall(LIFE - 2600, () => {
+                    if (!dot.active) return;
+                    this.tweens.add({ targets: dot, alpha: 0.2, duration: 210, yoyo: true, repeat: 5 });
+                }, [], this);
+
+                this.markingLife = this.time.delayedCall(LIFE, () => {
+                    if (dot.active) {
+                        this.tweens.killTweensOf(dot);
+                        dot.destroy();
+                        this.totalDots--;
+                        this.progressText.setText(this.collectedDots + '/' + this.totalDots);
+                    }
+                    this.activeMarking = null;
+                    this.scheduleMarking();
+                }, [], this);
+            }
+
+            /**
+             * Taking a country's mark clears its auditor: the flag is sent back
+             * to its corner and stands down for a few seconds.
+             */
+            certifyCountry(countryName) {
+                let cleared = null;
+                this.enemies.getChildren().forEach(enemy => {
+                    if (enemy.flagName !== countryName) return;
+                    cleared = enemy;
+                    enemy.setPosition(enemy.spawnX, enemy.spawnY);
+                    enemy.setVelocity(0);
+                    enemy.certifiedUntil = this.time.now + 5000;
+                    this.tweens.add({
+                        targets: enemy,
+                        alpha: 0.25,
+                        duration: 280,
+                        yoyo: true,
+                        repeat: 8,
+                        onComplete: () => enemy.setAlpha(1)
+                    });
+                });
+                if (cleared) {
+                    this.time.delayedCall(5000, () => {
+                        if (!cleared.active) return;
+                        cleared.certifiedUntil = 0;
+                        cleared.setAlpha(1);
+                        this.changeEnemyDirection(cleared);
+                    }, [], this);
+                }
+                return !!cleared;
             }
 
             spawnUpdateDot() {
@@ -1251,20 +2036,18 @@
                     pos.y * TILE_SIZE + TILE_SIZE / 2,
                     'update_dot'
                 );
-                updateDot.itemName = 'UPDATE';
+                updateDot.itemName = UPDATES[this.updateNameIndex++ % UPDATES.length];
                 updateDot.category = 'update';
                 updateDot.setDisplaySize(20, 20);
                 updateDot.isUpdate = true;
                 this.totalDots++;
 
                 // Add "UPDATE" label above the dot - green theme
-                const label = this.add.text(updateDot.x, updateDot.y - 18, 'UPDATE', {
-                    fontSize: '9px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#10b981'
-                }).setOrigin(0.5);
-                updateDot.label = label;
+                const dotLabel = track(this.add.text(updateDot.x, updateDot.y - 18,
+                    updateDot.itemName.toUpperCase(),
+                    label(8, T.updateStr)).setOrigin(0.5), 0.8);
+                dotLabel.x = Phaser.Math.Clamp(updateDot.x, dotLabel.width / 2 + 3, BOARD_W - dotLabel.width / 2 - 3);
+                updateDot.label = dotLabel;
 
                 // Pulsing glow animation for the dot
                 this.tweens.add({
@@ -1280,8 +2063,8 @@
 
                 // Pulsing animation for the label
                 this.tweens.add({
-                    targets: label,
-                    alpha: 0.4,
+                    targets: dotLabel,
+                    alpha: 0.35,
                     duration: 600,
                     ease: 'Sine.easeInOut',
                     yoyo: true,
@@ -1347,14 +2130,16 @@
             }
 
             updateUpdatesText() {
-                this.updatesText.setText('UPDATES: ' + this.activeUpdates + '/5');
-                this.updatesText.setColor(this.activeUpdates > 5 ? '#ef4444' : '#10b981');
+                this.updatesText.setText(this.activeUpdates + '/5');
+                const over = this.activeUpdates > 5;
+                this.updatesText.setColor(over ? T.accentStr : '');
+                this.updatesText.setBlink(over);
             }
 
             updateAlertText() {
                 this.updateAlert.setText(
-                    '⚠ TOO MANY UPDATES PENDING (' + this.activeUpdates + '/5) ⚠\n' +
-                    'COLLECT THEM OR LOSE A PRODUCT IN ' + this.updateCountdown + 's'
+                    'TOO MANY UPDATES PENDING (' + this.activeUpdates + '/5)\n' +
+                    'COLLECT THEM OR LOSE A PRODUCT IN ' + this.updateCountdown + 'S'
                 );
             }
 
@@ -1364,8 +2149,8 @@
                 if (this.updateCountdown <= 0) {
                     // Time's up - lose a life
                     this.lives--;
-                    this.livesText.setText('PRODUCTS: ' + this.lives);
-                    this.cameras.main.flash(200, 153, 27, 27);
+                    this.livesText.setText(String(this.lives));
+                    this.cameras.main.flash(180, 255, 255, 255);
                     soundManager.playHit();
 
                     if (this.lives <= 0) {
@@ -1389,19 +2174,19 @@
             }
 
             showTimeoutPenalty() {
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
-                const msg = this.add.text(centerX, centerY - 40,
-                    '⚠ UPDATES IGNORED — PRODUCT WITHDRAWN ⚠\nPRODUCTS REMAINING: ' + this.lives, {
-                    fontSize: '15px',
+                const msg = track(this.add.text(centerX, centerY - 40,
+                    'UPDATES IGNORED — PRODUCT WITHDRAWN\nPRODUCTS REMAINING: ' + this.lives, {
+                    fontSize: '12px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#FFFFFF',
-                    backgroundColor: '#991b1b',
+                    fontStyle: '500',
+                    color: '#141414',
+                    backgroundColor: '#FFFFFF',
                     align: 'center',
-                    padding: { x: 14, y: 10 }
-                }).setOrigin(0.5).setDepth(30).setScale(0);
+                    padding: { x: 16, y: 12 }
+                }).setOrigin(0.5).setDepth(30).setScale(0), 1.4);
 
                 this.tweens.add({
                     targets: msg,
@@ -1433,10 +2218,11 @@
                 this.player = this.physics.add.sprite(
                     spawnX * TILE_SIZE + TILE_SIZE / 2,
                     spawnY * TILE_SIZE + TILE_SIZE / 2,
-                    'player_closed'
+                    'player_0'
                 );
                 this.player.setDisplaySize(26, 26);
                 this.player.setDepth(10); // Ensure player renders on top
+
                 this.playerSpawnX = spawnX * TILE_SIZE + TILE_SIZE / 2;
                 this.playerSpawnY = spawnY * TILE_SIZE + TILE_SIZE / 2;
                 this.playerRotation = 0; // facing right
@@ -1465,48 +2251,59 @@
                     enemy.direction = spawn.dir;
                     enemy.spawnX = spawn.x * TILE_SIZE + TILE_SIZE / 2;
                     enemy.spawnY = spawn.y * TILE_SIZE + TILE_SIZE / 2;
+
+                    // Gentle wave so the flags feel alive
+                    this.tweens.add({
+                        targets: enemy,
+                        angle: { from: -4, to: 4 },
+                        duration: 420 + i * 70,
+                        yoyo: true,
+                        repeat: -1,
+                        ease: 'Sine.easeInOut'
+                    });
                 }
             }
 
             createUI() {
-                // Score
-                this.scoreText = this.add.text(10, MAZE_HEIGHT * TILE_SIZE + 8, 'SCORE: 0', {
-                    fontSize: '12px',
-                    fontFamily: 'Geist Mono',
-                    color: '#10b981'
-                });
+                // HUD lives in the page, not the canvas — bind the stat row elements
+                const bind = id => {
+                    const el = document.getElementById(id);
+                    return {
+                        setText: t => {
+                            if (!el || el.textContent === String(t)) return;
+                            el.textContent = t;
+                            // restart the animation even if it is already running
+                            el.classList.remove('flash');
+                            void el.offsetWidth;
+                            el.classList.add('flash');
+                        },
+                        setColor: c => { if (el) el.style.color = c; },
+                        setBlink: on => { if (el) el.classList.toggle('blink', !!on); }
+                    };
+                };
+                this.scoreText = bind('score-stat');
+                this.livesText = bind('products-stat');
+                this.progressText = bind('progress-stat');
+                this.updatesText = bind('updates-stat');
+                this.complianceText = bind('compliance-stat');
 
-                // Products
-                this.livesText = this.add.text(MAZE_WIDTH * TILE_SIZE - 110, MAZE_HEIGHT * TILE_SIZE + 8, 'PRODUCTS: 3', {
-                    fontSize: '12px',
-                    fontFamily: 'Geist Mono',
-                    color: '#f5f5f5'
-                });
-
-                // Progress
-                this.progressText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 8, '0/' + this.totalDots, {
-                    fontSize: '11px',
-                    fontFamily: 'Geist Mono',
-                    color: '#666666'
-                }).setOrigin(0.5, 0);
-
-                // Updates counter (max 5 pending before penalty)
-                this.updatesText = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, MAZE_HEIGHT * TILE_SIZE + 22, 'UPDATES: 0/5', {
-                    fontSize: '10px',
-                    fontFamily: 'Geist Mono',
-                    color: '#10b981'
-                }).setOrigin(0.5, 0);
+                this.scoreText.setText('0');
+                this.livesText.setText(String(this.lives));
+                this.progressText.setText('0/' + this.totalDots);
+                this.updatesText.setText('0/5');
+                this.updatesText.setColor('');
+                this.complianceText.setText('0%');
 
                 // Update alert with countdown (hidden by default) - positioned near top of game
-                this.updateAlert = this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
-                    fontSize: '11px',
+                this.updateAlert = track(this.add.text(MAZE_WIDTH * TILE_SIZE / 2, 50, '', {
+                    fontSize: '10px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#FFFFFF',
-                    backgroundColor: '#991b1b',
+                    fontStyle: '500',
+                    color: '#0A0A0A',
+                    backgroundColor: '#FFFFFF',
                     align: 'center',
-                    padding: { x: 10, y: 6 }
-                }).setOrigin(0.5, 0.5).setDepth(100);
+                    padding: { x: 14, y: 9 }
+                }).setOrigin(0.5, 0.5).setDepth(100), 1.4);
                 this.updateAlert.setVisible(false);
                 this.updateCountdown = 10;
                 this.countdownEvent = null;
@@ -1540,36 +2337,36 @@
                 if (this.currentDirection) {
                     this.playerRotation = targetRotations[this.currentDirection];
                     this.player.setRotation(this.playerRotation);
+                    this.player.setFlipY(this.currentDirection === 'left');
 
-                    // Chomping animation while moving
+                    // Chomping animation while moving: closed, half, open, half
                     this.chompTimer += delta;
                     if (this.chompTimer >= this.chompInterval) {
                         this.chompTimer = 0;
-                        this.mouthOpen = !this.mouthOpen;
-                        this.player.setTexture(this.mouthOpen ? 'player_open' : 'player_closed');
+                        this.chompStep = (this.chompStep + 1) % 4;
+                        this.player.setTexture('player_' + [0, 1, 2, 1][this.chompStep]);
                     }
                 } else {
-                    // Stop with mouth closed when not moving
-                    if (this.mouthOpen) {
-                        this.mouthOpen = false;
-                        this.player.setTexture('player_closed');
+                    // Rest with mouth closed when not moving
+                    if (this.chompStep !== 0) {
+                        this.chompStep = 0;
+                        this.player.setTexture('player_0');
                     }
                 }
             }
 
             handleInput() {
-                // Capture current key state - only set if key is down
-                if (this.cursors.left.isDown || this.wasd.left.isDown) {
-                    this.inputDirection = 'left';
-                } else if (this.cursors.right.isDown || this.wasd.right.isDown) {
-                    this.inputDirection = 'right';
-                } else if (this.cursors.up.isDown || this.wasd.up.isDown) {
-                    this.inputDirection = 'up';
-                } else if (this.cursors.down.isDown || this.wasd.down.isDown) {
-                    this.inputDirection = 'down';
-                } else {
-                    this.inputDirection = null;
-                }
+                // A held key wins, then a held thumb. Every key press or swipe
+                // is also remembered until the turn happens, so a quick tap of
+                // "up" before a junction still turns the player there.
+                let key = null;
+                if (this.cursors.left.isDown || this.wasd.left.isDown) key = 'left';
+                else if (this.cursors.right.isDown || this.wasd.right.isDown) key = 'right';
+                else if (this.cursors.up.isDown || this.wasd.up.isDown) key = 'up';
+                else if (this.cursors.down.isDown || this.wasd.down.isDown) key = 'down';
+
+                if (key) this.queuedDirection = key;
+                this.inputDirection = key || this.touchHeld || this.queuedDirection;
             }
 
             movePlayer() {
@@ -1588,14 +2385,22 @@
                 const nearCenterX = distX < threshold;
                 const nearCenterY = distY < threshold;
 
-                // Try to change direction when near center
-                if (nearCenterX && nearCenterY && this.inputDirection) {
+                // Try to change direction when near center. Only when the
+                // request differs from the current heading: otherwise holding a
+                // key (or thumb) in the direction of travel would re-snap the
+                // player to the tile centre every frame and freeze it in place.
+                if (nearCenterX && nearCenterY && this.inputDirection && this.inputDirection !== this.currentDirection) {
                     if (this.canMoveInDirection(tileX, tileY, this.inputDirection)) {
                         // Snap to center when changing direction
                         this.player.x = tileCenterX;
                         this.player.y = tileCenterY;
                         this.currentDirection = this.inputDirection;
                     }
+                }
+
+                // One press or swipe = one turn: drop it once we are heading that way
+                if (this.queuedDirection && this.queuedDirection === this.currentDirection) {
+                    this.queuedDirection = null;
                 }
 
                 // Check if current direction is still valid
@@ -1670,6 +2475,12 @@
             moveEnemies() {
                 const speed = ENEMY_SPEED;
                 this.enemies.getChildren().forEach(enemy => {
+                    // A country whose mark you hold has stood its auditor down
+                    if (enemy.certifiedUntil && this.time.now < enemy.certifiedUntil) {
+                        enemy.setVelocity(0);
+                        return;
+                    }
+
                     // Wrap through the side tunnels
                     const worldWidth = MAZE_WIDTH * TILE_SIZE;
                     if (enemy.x < -TILE_SIZE / 2) {
@@ -1782,27 +2593,31 @@
                 const pointsMap = {
                     standards: 20,
                     legislations: 20,
-                    markings: 15,
+                    markings: 100,     // rare, and the only one worth a detour
                     requirements: 5
                 };
                 const points = isUpdate ? 50 : (pointsMap[category] || 10);
 
-                // Colors based on category
-                const colorMap = {
-                    standards: '#34d399',
-                    legislations: '#60a5fa',
-                    markings: '#fbbf24',
-                    requirements: '#9ca3af'
-                };
-                const textColor = isUpdate ? '#10b981' : (colorMap[category] || '#f5f5f5');
-
                 // Play appropriate sound effect
                 if (isUpdate) {
                     soundManager.playUpdateCollect();
+                    this.cameras.main.flash(120, 125, 163, 224);
                     // Decrement updates counter
                     this.activeUpdates--;
                     this.updateUpdatesText();
                     this.checkUpdateAlert();
+                } else if (category === 'markings') {
+                    // The rare one: it should be unmistakable that you got it.
+                    soundManager.playMarking();
+                    this.cameras.main.flash(200, 255, 197, 61);
+                    this.counts.markings++;
+                    this.updateSidebarCounts();
+                    const mark = dot.mark || { code: dot.itemName || 'MARK', country: '' };
+                    const cleared = mark.country ? this.certifyCountry(mark.country) : false;
+                    this.celebrateMarking(dot.x, dot.y, mark, points, cleared);
+                    if (this.markingLife) { this.markingLife.remove(false); this.markingLife = null; }
+                    this.activeMarking = null;
+                    this.scheduleMarking();
                 } else {
                     soundManager.playChomp();
                     // Update category count
@@ -1823,21 +2638,27 @@
 
                 dot.destroy();
                 this.score += points;
-                this.scoreText.setText('SCORE: ' + this.score);
+                this.scoreText.setText(String(this.score));
                 this.collectedDots++;
                 this.progressText.setText(this.collectedDots + '/' + this.totalDots);
 
+                // Markings carry their own announcement, and they were never part
+                // of the board's starting dots — so compliance does not move.
+                if (category === 'markings') return;
+
                 // Show collected item name (shorter for requirements)
                 const isReq = category === 'requirements';
-                const displayName = isUpdate ? 'UPDATE +50' : (isReq ? '+' + points : itemName + ' +' + points);
-                const nameText = this.add.text(dotX, dotY - 22, displayName, {
-                    fontSize: isReq ? '11px' : '13px',
+                const displayName = isUpdate
+                    ? itemName.toUpperCase() + ' +' + points
+                    : (isReq ? '+' + points : itemName + ' +' + points);
+                const nameText = track(this.add.text(dotX, dotY - 22, displayName, {
+                    fontSize: isReq ? '9px' : '11px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: textColor,
-                    backgroundColor: 'rgba(10, 10, 10, 0.85)',
-                    padding: { x: 6, y: 3 }
-                }).setOrigin(0.5).setDepth(15).setScale(0.6);
+                    fontStyle: '500',
+                    color: isUpdate ? '#FFFFFF' : '#0A0A0A',
+                    backgroundColor: isUpdate ? T.updateStr : (CATEGORY_COLORS[category] || T.accentStr),
+                    padding: { x: 7, y: 5 }
+                }).setOrigin(0.5).setDepth(15).setScale(0.6), 1);
 
                 // Keep long names fully on screen near the maze edges
                 nameText.x = Phaser.Math.Clamp(dotX, nameText.width / 2 + 4, MAZE_WIDTH * TILE_SIZE - nameText.width / 2 - 4);
@@ -1874,13 +2695,91 @@
                     onComplete: () => nameText.destroy()
                 });
 
-                // Track initial dots collected (not updates)
-                if (!isUpdate) {
-                    this.collectedInitialDots++;
-                    // Win when all initial dots are collected
-                    if (this.collectedInitialDots >= this.initialDots) {
-                        this.winGame();
-                    }
+                this.trackInitialDot(isUpdate);
+            }
+
+            // Compliance climbs on every dot that was on the board at the start
+            trackInitialDot(isUpdate) {
+                if (isUpdate) return;
+                this.collectedInitialDots++;
+                this.complianceText.setText(
+                    Math.round((this.collectedInitialDots / this.initialDots) * 100) + '%'
+                );
+                if (this.collectedInitialDots >= this.initialDots) {
+                    this.winGame();
+                }
+            }
+
+            /**
+             * A marking is the rare prize, so taking one is announced properly:
+             * the seal bursts where it stood, the name lands on a gold plate and
+             * a banner names it across the top of the board.
+             */
+            celebrateMarking(x, y, mark, points, cleared) {
+                const name = mark.code;
+                // Expanding seal ring at the pickup
+                const ring = this.add.circle(x, y, 9).setStrokeStyle(2, T.accent, 1).setDepth(17);
+                this.tweens.add({
+                    targets: ring,
+                    radius: 42,
+                    alpha: 0,
+                    duration: 520,
+                    ease: 'Cubic.easeOut',
+                    onComplete: () => ring.destroy()
+                });
+
+                // Gold plate with the mark's own name
+                const plate = track(this.add.text(x, y - 26, name.toUpperCase() + '  +' + points, {
+                    fontSize: '14px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: '700',
+                    color: T.inkStr,
+                    backgroundColor: T.accentStr,
+                    padding: { x: 10, y: 7 }
+                }).setOrigin(0.5).setDepth(18).setScale(0.5), 1.5);
+                plate.x = Phaser.Math.Clamp(x, plate.width / 2 + 4, BOARD_W - plate.width / 2 - 4);
+                this.tweens.add({ targets: plate, scale: 1, duration: 170, ease: 'Back.easeOut' });
+                this.tweens.add({ targets: plate, y: y - 58, duration: 1300, ease: 'Cubic.easeOut' });
+                this.tweens.add({
+                    targets: plate,
+                    alpha: 0,
+                    delay: 950,
+                    duration: 420,
+                    onComplete: () => plate.destroy()
+                });
+
+                // Banner across the top so it reads even in the thick of a chase
+                if (this.markBanner && this.markBanner.active) {
+                    this.tweens.killTweensOf(this.markBanner);
+                    this.markBanner.destroy();
+                }
+                const headline = cleared
+                    ? name.toUpperCase() + ' SECURED  \u00b7  ' + mark.country.toUpperCase() + ' CLEARED'
+                    : name.toUpperCase() + ' MARKING SECURED';
+                const banner = track(this.add.text(BOARD_W / 2, 26, headline, {
+                    fontSize: '11px',
+                    fontFamily: 'Geist Mono',
+                    fontStyle: '600',
+                    color: T.accentStr,
+                    backgroundColor: 'rgba(15,20,29,0.92)',
+                    padding: { x: 12, y: 7 }
+                }).setOrigin(0.5).setDepth(18).setAlpha(0), 2);
+                this.markBanner = banner;
+                this.tweens.add({ targets: banner, alpha: 1, y: 34, duration: 190, ease: 'Back.easeOut' });
+                this.tweens.add({
+                    targets: banner,
+                    alpha: 0,
+                    delay: 1250,
+                    duration: 400,
+                    onComplete: () => banner.destroy()
+                });
+
+                // And the stat it belongs to pops
+                const markEl = document.getElementById('markings-count');
+                if (markEl) {
+                    markEl.classList.remove('flash');
+                    void markEl.offsetWidth;
+                    markEl.classList.add('flash');
                 }
             }
 
@@ -1899,16 +2798,18 @@
 
             hitEnemy(player, enemy) {
                 if (this.gameOver || this.invulnerable) return;
+                // Its country's mark is in hand — this one is not auditing anyone
+                if (enemy.certifiedUntil && this.time.now < enemy.certifiedUntil) return;
                 this.invulnerable = true;
 
                 // Play hit sound
                 soundManager.playHit();
 
                 this.lives--;
-                this.livesText.setText('PRODUCTS: ' + this.lives);
+                this.livesText.setText(String(this.lives));
 
                 // Flash screen
-                this.cameras.main.flash(200, 153, 27, 27);
+                this.cameras.main.flash(180, 255, 255, 255);
 
                 if (this.lives <= 0) {
                     this.loseGame(enemy);
@@ -1917,31 +2818,31 @@
                     this.physics.pause();
 
                     // Show "Caught by" message
-                    const centerX = this.cameras.main.centerX;
-                    const centerY = this.cameras.main.centerY;
+                    const centerX = BOARD_W / 2;
+                    const centerY = BOARD_H / 2;
 
                     const overlay = this.add.rectangle(centerX, centerY,
-                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.85).setDepth(20);
+                        MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.95).setDepth(20);
+                    const overlayLines = addStripes(this, 20.1, 0.9);
 
                     // Warning text
-                    const warningText = this.add.text(centerX, centerY - 50, '⚠ AUDIT VIOLATION ⚠', {
-                        fontSize: '14px',
-                        fontFamily: 'Geist Mono',
-                        color: '#fbbf24'
-                    }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                    const warningText = track(this.add.text(centerX, centerY - 112,
+                        'AUDIT VIOLATION', label(10, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
-                    const caughtText = this.add.text(centerX, centerY, 'CAUGHT BY ' + enemy.flagName.toUpperCase() + ' AUDITORS', {
-                        fontSize: '28px',
-                        fontFamily: 'Geist Mono',
-                        fontStyle: 'bold',
-                        color: '#ef4444'
-                    }).setOrigin(0.5).setScale(0).setDepth(21);
+                    // Two lines so the headline can be big and still fit the board
+                    const caughtText = this.add.text(centerX, centerY - 26,
+                        'CAUGHT BY\n' + enemy.flagName.toUpperCase() + ' AUDITORS',
+                        Object.assign(display(48), { align: 'center' }))
+                        .setOrigin(0.5).setScale(0).setDepth(21);
+                    caughtText.setLineSpacing(4);
+
+                    const overlayRule = this.add.rectangle(centerX, centerY + 62, 320, 1, T.hairline, 0.12).setDepth(21);
 
                     // Lives remaining
-                    const livesText = this.add.text(centerX, centerY + 50, 'PRODUCTS REMAINING: ' + this.lives, {
-                        fontSize: '12px',
+                    const livesText = this.add.text(centerX, centerY + 90, 'Products remaining: ' + this.lives, {
+                        fontSize: '13px',
                         fontFamily: 'Geist Mono',
-                        color: '#888888'
+                        color: '#8A8F98'
                     }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
                     // Dramatic scale-in effect
@@ -1980,6 +2881,8 @@
                     // After 3 seconds, remove message and continue
                     this.time.delayedCall(3000, () => {
                         overlay.destroy();
+                        overlayLines.destroy();
+                        overlayRule.destroy();
                         caughtText.destroy();
                         warningText.destroy();
                         livesText.destroy();
@@ -1988,10 +2891,13 @@
                         this.player.setPosition(this.playerSpawnX, this.playerSpawnY);
                         this.player.setVelocity(0);
                         this.player.setRotation(0);
-                        this.player.setTexture('player_closed');
+                        this.player.setTexture('player_0');
                         this.currentDirection = null;
                         this.inputDirection = null;
-                        this.mouthOpen = false;
+                        this.touchHeld = null;
+                        this.queuedDirection = null;
+                        this.touchStick.hide();
+                        this.chompStep = 0;
                         this.playerRotation = 0;
 
                         // Send enemies back to their corners so they can't camp the spawn
@@ -2024,64 +2930,81 @@
                 const updatePenalty = this.activeUpdates * 100;
                 const finalScore = Math.max(0, this.score - updatePenalty);
 
-                // Play win jingle, then loop the victory fanfare
+                // Win sting, then the victory lap: Offenbach's Can-Can
                 soundManager.stopJingle();
                 soundManager.playWin();
                 this.time.delayedCall(1500, () => {
-                    if (this.gameOver) soundManager.playFanfare();
+                    if (this.gameOver) soundManager.playCanCan();
                 });
 
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
-                // Overlay with dark theme
+                // Paper overlay
                 const overlay = this.add.rectangle(centerX, centerY,
-                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.92).setDepth(20);
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.96).setDepth(20);
+                addStripes(this, 20.1, 0.9);
 
-                this.add.text(centerX, centerY - 80, 'COMPLIANCE ACHIEVED', {
-                    fontSize: '24px',
-                    fontFamily: 'Geist',
-                    fontStyle: 'bold',
-                    color: '#10b981'
-                }).setOrigin(0.5).setDepth(21);
+                this.add.rectangle(centerX - 92, centerY - 112, 7, 7, T.accent).setDepth(21);
+                track(this.add.text(centerX - 78, centerY - 112, 'COMPLIANCE 100%',
+                    label(10)).setOrigin(0, 0.5).setDepth(21), 2.4);
 
-                this.add.text(centerX, centerY - 55, 'COMPLIANCE LEVEL: 100%', {
-                    fontSize: '12px',
+                const wonText = this.add.text(centerX, centerY - 72, 'COMPLIANCE ACHIEVED',
+                    display(30)).setOrigin(0.5).setDepth(21);
+                // Arcade flash: hard on/off, not a soft fade
+                this.tweens.add({
+                    targets: wonText,
+                    alpha: 0.15,
+                    duration: 110,
+                    yoyo: true,
+                    repeat: 7,
+                    ease: 'Stepped',
+                    easeParams: [1]
+                });
+                this.cameras.main.flash(260, 255, 255, 255);
+
+                this.add.rectangle(centerX, centerY - 38, 320, 1, T.hairline, 0.12).setDepth(21);
+
+                this.add.text(centerX, centerY - 10, 'Score: ' + this.score.toLocaleString('en-US'), {
+                    fontSize: '13px',
                     fontFamily: 'Geist Mono',
-                    color: '#10b981'
-                }).setOrigin(0.5).setDepth(21);
-
-                this.add.text(centerX, centerY - 30, 'SCORE: ' + this.score, {
-                    fontSize: '16px',
-                    fontFamily: 'Geist Mono',
-                    color: '#f5f5f5'
+                    color: '#8A8F98'
                 }).setOrigin(0.5).setDepth(21);
 
                 // Show penalty for remaining updates
                 if (this.activeUpdates > 0) {
-                    this.add.text(centerX, centerY, 'PENDING UPDATES: -' + updatePenalty, {
-                        fontSize: '14px',
+                    this.add.text(centerX, centerY + 14, 'Pending updates: −' + updatePenalty.toLocaleString('en-US'), {
+                        fontSize: '13px',
                         fontFamily: 'Geist Mono',
-                        color: '#ef4444'
+                        color: '#8A8F98'
                     }).setOrigin(0.5).setDepth(21);
                 }
 
-                this.add.text(centerX, centerY + 35, 'FINAL SCORE: ' + finalScore, {
-                    fontSize: '20px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#10b981'
-                }).setOrigin(0.5).setDepth(21);
+                track(this.add.text(centerX, centerY + 94, 'FINAL SCORE',
+                    label(9)).setOrigin(0.5).setDepth(21), 2.4);
+                this.add.rectangle(centerX, centerY + 82, 320, 1, T.hairline, 0.12).setDepth(21);
 
-                const restartBtn = this.add.text(centerX, centerY + 80, 'CLICK OR PRESS SPACE TO RESTART', {
-                    fontSize: '12px',
-                    fontFamily: 'Geist Mono',
-                    color: '#666666'
-                }).setOrigin(0.5).setDepth(21).setInteractive({ useHandCursor: true });
+                this.add.text(centerX, centerY + 56, finalScore.toLocaleString('en-US'),
+                    figure(40)).setOrigin(0.5).setDepth(21);
 
-                const restart = () => this.scene.restart();
+                const restartLabel = track(this.add.text(centerX, centerY + 148,
+                    (isTouchDevice() ? 'TAP TO PLAY AGAIN' : 'PRESS SPACE TO PLAY AGAIN') + '   \u2192',
+                    label(10, '#141414')).setOrigin(0.5).setDepth(22), 2);
+                const restartBtn = this.add.rectangle(centerX, centerY + 148,
+                    restartLabel.width + 40, 40, T.accent).setDepth(21).setInteractive({ useHandCursor: true });
+                this.time.delayedCall(600, () => blinkButton(this, restartBtn));
+
+                let restarted = false;
+                const restart = () => {
+                    if (restarted) return;
+                    restarted = true;
+                    this.scene.restart();
+                };
                 this.input.keyboard.once('keydown-SPACE', restart);
                 restartBtn.once('pointerdown', restart);
+                this.time.delayedCall(800, () => {
+                    this.input.once('pointerdown', restart);
+                });
             }
 
             loseGame(enemy) {
@@ -2094,8 +3017,8 @@
                 soundManager.stopJingle();
                 soundManager.playGameOver();
 
-                const centerX = this.cameras.main.centerX;
-                const centerY = this.cameras.main.centerY;
+                const centerX = BOARD_W / 2;
+                const centerY = BOARD_H / 2;
 
                 // Currency mapping for each market
                 const currencies = {
@@ -2111,32 +3034,22 @@
                 // Share of required compliance elements actually collected
                 const compliancePct = this.initialDots > 0
                     ? Math.round((this.collectedInitialDots / this.initialDots) * 100) : 0;
-                const pctColor = compliancePct >= 80 ? '#10b981' : (compliancePct >= 50 ? '#fbbf24' : '#ef4444');
 
                 // Heavy camera shake
                 this.cameras.main.shake(500, 0.02);
 
                 // Overlay with dark theme
                 const overlay = this.add.rectangle(centerX, centerY,
-                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, 0x0a0a0a, 0.92).setDepth(20);
+                    MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.96).setDepth(20);
+                addStripes(this, 20.1, 0.9);
 
                 // Non-compliance alert badge - flashing
-                const alertBadge = this.add.text(centerX, centerY - 120, '⚠ NON-COMPLIANCE ALERT ⚠', {
-                    fontSize: '14px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#ef4444',
-                    backgroundColor: '#991b1b33',
-                    padding: { x: 12, y: 4 }
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                const alertBadge = track(this.add.text(centerX, centerY - 142, 'NON-COMPLIANCE',
+                    label(10, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
-                // Main AUDIT FAILED text - starts scaled to 0
-                const auditFailedText = this.add.text(centerX, centerY - 50, 'AUDIT FAILED', {
-                    fontSize: '42px',
-                    fontFamily: 'Geist',
-                    fontStyle: 'bold',
-                    color: '#ef4444'
-                }).setOrigin(0.5).setScale(0).setDepth(21);
+                // Main audit failed text - starts scaled to 0
+                const auditFailedText = this.add.text(centerX, centerY - 96, 'AUDIT FAILED',
+                    display(40)).setOrigin(0.5).setScale(0).setDepth(21);
 
                 // Dramatic scale-in with shake
                 this.tweens.add({
@@ -2177,37 +3090,36 @@
                 });
 
                 // Other elements fade in
-                const withdrawnText = this.add.text(centerX, centerY + 10, 'Product withdrawn from market', {
-                    fontSize: '14px',
-                    fontFamily: 'Geist',
-                    color: '#888888'
+                const withdrawnText = this.add.text(centerX, centerY - 50,
+                    'Product withdrawn from the ' + (enemy ? countryName : 'US') + ' market at ' + compliancePct + '% compliance', {
+                    fontSize: '13px',
+                    fontFamily: 'Geist Mono',
+                    color: '#8A8F98',
+                    align: 'center',
+                    wordWrap: { width: 540 }
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
-                // Compliance level: the headline result (penalty scales with what was missed)
-                const complianceText = this.add.text(centerX, centerY + 40, 'COMPLIANCE LEVEL: ' + compliancePct + '%', {
-                    fontSize: '18px',
-                    fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: pctColor
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                const dividerLine = this.add.rectangle(centerX, centerY - 14, 320, 1, 0xFFFFFF, 1)
+                    .setAlpha(0).setDepth(21);
 
                 const penaltyAmount = { value: 0 };
                 // Penalty scales based on uncollected items: 0 if all collected, 2M if none collected
                 const uncollectedRatio = this.totalDots > 0 ? (this.totalDots - this.collectedDots) / this.totalDots : 1;
                 const targetPenalty = Math.round(2000000 * uncollectedRatio);
-                const penaltyText = this.add.text(centerX, centerY + 78, 'PENALTY: ' + currency.symbol + '0', {
-                    fontSize: '20px',
+                const penaltyLabel = track(this.add.text(centerX, centerY + 16, 'PENALTY',
+                    label(9)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
+
+                const penaltyText = this.add.text(centerX, centerY + 52, currency.symbol + '0', {
+                    fontSize: '38px',
                     fontFamily: 'Geist Mono',
-                    fontStyle: 'bold',
-                    color: '#ef4444'
+                    fontStyle: '600',
+                    color: '#FFFFFF'
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
                 // Spell out the currency so the symbol is unambiguous
-                const currencyNote = this.add.text(centerX, centerY + 101, currency.name + ' (' + currency.code + ')', {
-                    fontSize: '11px',
-                    fontFamily: 'Geist Mono',
-                    color: '#888888'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21);
+                const currencyNote = track(this.add.text(centerX, centerY + 88,
+                    currency.name.toUpperCase() + ' (' + currency.code + ')',
+                    label(9, T.dimStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2);
 
                 // Counting animation for penalty
                 this.tweens.add({
@@ -2218,31 +3130,38 @@
                     ease: 'Cubic.easeOut',
                     onUpdate: () => {
                         const formatted = Math.floor(penaltyAmount.value).toLocaleString('en-US');
-                        penaltyText.setText('PENALTY: ' + currency.symbol + formatted);
+                        penaltyText.setText(currency.symbol + formatted);
                     }
                 });
 
-                const scoreText = this.add.text(centerX, centerY + 126, 'FINAL SCORE: ' + this.score, {
-                    fontSize: '16px',
+                const scoreText = this.add.text(centerX, centerY + 120, 'Score: ' + this.score.toLocaleString('en-US'), {
+                    fontSize: '13px',
                     fontFamily: 'Geist Mono',
-                    color: '#f5f5f5'
+                    color: '#8A8F98'
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
-                const restartText = this.add.text(centerX, centerY + 160, 'CLICK OR PRESS SPACE TO RESTART', {
-                    fontSize: '12px',
-                    fontFamily: 'Geist Mono',
-                    color: '#666666'
-                }).setOrigin(0.5).setAlpha(0).setDepth(21).setInteractive({ useHandCursor: true });
+                const restartLabel = track(this.add.text(centerX, centerY + 166,
+                    (isTouchDevice() ? 'TAP TO TRY AGAIN' : 'PRESS SPACE TO TRY AGAIN') + '   \u2192',
+                    label(10, '#141414')).setOrigin(0.5).setAlpha(0).setDepth(22), 2);
+                const restartText = this.add.rectangle(centerX, centerY + 166,
+                    restartLabel.width + 40, 40, T.accent)
+                    .setAlpha(0).setDepth(21).setInteractive({ useHandCursor: true });
 
                 // Staggered fade-in for other elements
                 this.tweens.add({
-                    targets: [withdrawnText, complianceText],
+                    targets: withdrawnText,
                     alpha: 1,
                     duration: 300,
                     delay: 400
                 });
                 this.tweens.add({
-                    targets: [penaltyText, currencyNote],
+                    targets: dividerLine,
+                    alpha: 0.2,
+                    duration: 300,
+                    delay: 500
+                });
+                this.tweens.add({
+                    targets: [penaltyLabel, penaltyText, currencyNote],
                     alpha: 1,
                     duration: 300,
                     delay: 600
@@ -2254,25 +3173,39 @@
                     delay: 800
                 });
                 this.tweens.add({
-                    targets: restartText,
+                    targets: [restartText, restartLabel],
                     alpha: 1,
                     duration: 300,
-                    delay: 1000
+                    delay: 1000,
+                    onComplete: () => blinkButton(this, restartText)
                 });
 
-                const restart = () => this.scene.restart();
+                let restarted = false;
+                const restart = () => {
+                    if (restarted) return;
+                    restarted = true;
+                    this.scene.restart();
+                };
                 this.input.keyboard.once('keydown-SPACE', restart);
                 restartText.once('pointerdown', restart);
+                this.time.delayedCall(800, () => {
+                    this.input.once('pointerdown', restart);
+                });
             }
         }
 
         // Game configuration
         const config = {
             type: Phaser.AUTO,
-            width: MAZE_WIDTH * TILE_SIZE,
-            height: MAZE_HEIGHT * TILE_SIZE + 40,
             parent: 'game-container',
-            backgroundColor: '#0a0a0a',
+            backgroundColor: '#0F141D',
+            scale: {
+                mode: Phaser.Scale.FIT,
+                autoCenter: Phaser.Scale.CENTER_BOTH,
+                width: BOARD_W * DPR,
+                height: BOARD_H * DPR,
+                autoRound: true
+            },
             physics: {
                 default: 'arcade',
                 arcade: {
