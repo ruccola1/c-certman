@@ -151,6 +151,8 @@
         body.window-mode main { padding: 0 !important; }
         body.window-mode .shell { padding-left: 8px; padding-right: 8px; }
         body.embed-mode .board { border-color: rgba(255,255,255,0.14); }
+        /* Framed, the score strip would otherwise sit flush against the panel edge. */
+        body.embed-mode .shell { padding-bottom: 9px; }
         body.embed-mode { background: #0F141D; }
         .label {
             font-family: 'Geist Mono', ui-monospace, monospace;
@@ -841,6 +843,36 @@
         if (isWindowMode || isEmbedded) document.body.classList.add('window-mode');
         if (isEmbedded) document.body.classList.add('embed-mode');
 
+        /**
+         * Tell the host how this page is proportioned, so a panel around it can
+         * be cut to the game rather than to the window. Everything but the board
+         * is a fixed height (the score strip) and a fixed width (the gutters),
+         * so the host can solve for any size from these two numbers plus the
+         * board's own 19:22.
+         */
+        function reportMetrics() {
+            if (window.parent === window) return;
+            const board = document.querySelector('.board');
+            if (!board) return;
+            const box = board.getBoundingClientRect();
+            if (!box.height || !box.width) return;
+            // The gutter is the shell's own padding, NOT whatever width happens
+            // to be left over: the board is sized from the height it is given,
+            // so a frame wider than it needs leaves slack that the host should
+            // trim away rather than treat as part of the layout.
+            const shell = document.querySelector('.shell');
+            const gutter = shell ? Math.round(parseFloat(getComputedStyle(shell).paddingLeft) * 2) : 0;
+            try {
+                window.parent.postMessage({
+                    source: 'compliance-man',
+                    type: 'metrics',
+                    chrome: Math.round(window.innerHeight - box.height),
+                    gutter: gutter,
+                    aspect: 19 / 22
+                }, '*');
+            } catch (e) { /* host on another origin and locked down */ }
+        }
+
         /** Hand a finished round to the page that embedded us. */
         window.reportRound = function (outcome, score, extra) {
             if (window.parent === window) return;
@@ -939,6 +971,7 @@
                 labelMuteBtn();
                 labelWindowBtn();
                 if (window.game && window.game.scale) window.game.scale.refresh();
+                reportMetrics();
             }, 60);
         };
         requestAnimationFrame(syncShellWidth);
@@ -950,6 +983,14 @@
         } catch (e) { /* older browser: the resize handler covers it */ }
         window.addEventListener('resize', refit);
         window.addEventListener('orientationchange', refit);
+
+        if (isEmbedded) {
+            const announce = () => requestAnimationFrame(reportMetrics);
+            announce();
+            window.addEventListener('resize', announce);
+            if (document.fonts && document.fonts.ready) document.fonts.ready.then(announce);
+            window.addEventListener('load', announce);
+        }
 
         // ===== BRAND THEME =====
         // Certean: near-black ground, fine diagonal rules, one electric blue
