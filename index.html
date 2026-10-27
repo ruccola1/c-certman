@@ -127,6 +127,13 @@
             50%, 100% { opacity: 0.25; }
         }
         .blink { animation: blink 0.55s steps(1, end) infinite; }
+        /* The rows under the board hold a FIXED height. They used to grow as the
+           counters got wider ("Requirements 77" wraps where "Requirements 0"
+           did not), which stole height from the board and shrank the game
+           mid-play. One row, one height, whatever the numbers say. */
+        .legend-row { height: 34px; }
+        .legend-row > div { flex: 0 0 auto; }
+        .stat-cell .figure { display: block; }
         /* A short window gives its space to the board, not to the trimmings. */
         @media (max-height: 860px) {
             .legend-row { display: none; }
@@ -181,10 +188,12 @@
             padding: 10px 0;
         }
         .board {
-            height: 100%;
-            max-height: 100%;
+            width: 100%;
+            height: auto;
             max-width: 100%;
+            max-height: 100%;
             aspect-ratio: 19 / 22;
+            margin-inline: auto;
         }
         #game-container {
             width: 100%;
@@ -220,7 +229,7 @@
 
     <!-- Main Content -->
     <main class="relative z-10 flex-1 min-h-0 flex flex-col items-center justify-center py-2 sm:py-4">
-        <div class="shell w-full max-w-[660px] px-4 h-full flex flex-col min-h-0">
+        <div class="shell w-full max-w-[860px] px-4 h-full flex flex-col min-h-0">
 
             <!-- Eyebrow -->
             <div class="eyebrow-row flex items-end justify-between pb-3 flex-none">
@@ -259,28 +268,28 @@
             </div>
 
             <!-- Legend -->
-            <div class="legend-row hidden sm:flex flex-wrap items-center gap-x-4 gap-y-3 sm:gap-x-6 pt-4 flex-none">
-                <div class="flex items-center gap-2.5">
+            <div class="legend-row hidden sm:flex flex-nowrap items-center justify-between gap-x-3 pt-4 flex-none overflow-hidden">
+                <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                     <span class="w-2.5 h-2.5 bg-[#8FA5CC]"></span>
                     <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Elements</span>
                     <span id="standards-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
                 </div>
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                     <span class="w-2.5 h-2.5 border border-[#8FA5CC]"></span>
                     <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Legislations</span>
                     <span id="legislations-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
                 </div>
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                     <span class="w-3.5 h-2.5 rounded-[2px] bg-[#FFC53D]"></span>
                     <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Markings</span>
                     <span id="markings-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
                 </div>
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                     <span class="w-1.5 h-1.5 bg-[#8FA5CC]/40"></span>
                     <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Requirements</span>
                     <span id="requirements-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
                 </div>
-                <div class="flex items-center gap-2.5">
+                <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
                     <span class="w-2.5 h-2.5 rounded-full bg-[#7DA3E0]"></span>
                     <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Updates</span>
                 </div>
@@ -847,8 +856,11 @@
         function openGameWindow() {
             // Size the popup to the board plus the score strip, capped to the screen.
             const chrome = 150;                                  // score strip + window frame
-            const h = Math.min(Math.round((screen.availHeight || 900) * 0.92), 940);
-            const w = Math.round((h - chrome) * BOARD_ASPECT) + 40;
+            const h = Math.min(Math.round((screen.availHeight || 900) * 0.96), 1400);
+            const w = Math.min(
+                Math.round((h - chrome) * BOARD_ASPECT) + 40,
+                Math.round((screen.availWidth || 1200) * 0.9)
+            );
             const left = Math.round(((screen.availWidth || 1200) - w) / 2);
             const top = Math.round(((screen.availHeight || 900) - h) / 2);
             const popup = window.open(
@@ -892,7 +904,7 @@
             if (inner <= 0) return;
             const boardWidth = Math.floor(inner * BOARD_ASPECT);
             const gutter = parseFloat(getComputedStyle(shell).paddingLeft) * 2;
-            shell.style.maxWidth = Math.min(660, boardWidth + gutter) + 'px';
+            shell.style.maxWidth = Math.min(860, boardWidth + gutter) + 'px';
         }
 
         let resizeTimer = null;
@@ -2827,7 +2839,7 @@
 
                     // Warning text
                     const warningText = track(this.add.text(centerX, centerY - 112,
-                        'AUDIT VIOLATION', label(10, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
+                        'AUDIT VIOLATION', label(13, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
                     // Two lines so the headline can be big and still fit the board
                     const caughtText = this.add.text(centerX, centerY - 26,
@@ -2836,11 +2848,11 @@
                         .setOrigin(0.5).setScale(0).setDepth(21);
                     caughtText.setLineSpacing(4);
 
-                    const overlayRule = this.add.rectangle(centerX, centerY + 62, 320, 1, T.hairline, 0.12).setDepth(21);
+                    const overlayRule = this.add.rectangle(centerX, centerY + 62, 360, 1, T.hairline, 0.12).setDepth(21);
 
                     // Lives remaining
-                    const livesText = this.add.text(centerX, centerY + 90, 'Products remaining: ' + this.lives, {
-                        fontSize: '13px',
+                    const livesText = this.add.text(centerX, centerY + 94, 'Products remaining: ' + this.lives, {
+                        fontSize: '17px',
                         fontFamily: 'Geist Mono',
                         color: '#8A8F98'
                     }).setOrigin(0.5).setAlpha(0).setDepth(21);
@@ -2938,16 +2950,19 @@
                 });
 
                 const centerX = BOARD_W / 2;
-                const centerY = BOARD_H / 2;
+                const boardMid = BOARD_H / 2;
+                // The panel runs from the kicker (-117) to the foot of the button
+                // (+168), so it is centred on the board when lifted by that much.
+                const centerY = boardMid - 30;
 
                 // Paper overlay
-                const overlay = this.add.rectangle(centerX, centerY,
+                const overlay = this.add.rectangle(centerX, boardMid,
                     MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.96).setDepth(20);
                 addStripes(this, 20.1, 0.9);
 
-                this.add.rectangle(centerX - 92, centerY - 112, 7, 7, T.accent).setDepth(21);
-                track(this.add.text(centerX - 78, centerY - 112, 'COMPLIANCE 100%',
-                    label(10)).setOrigin(0, 0.5).setDepth(21), 2.4);
+                this.add.rectangle(centerX - 104, centerY - 112, 8, 8, T.accent).setDepth(21);
+                track(this.add.text(centerX - 88, centerY - 112, 'COMPLIANCE 100%',
+                    label(13)).setOrigin(0, 0.5).setDepth(21), 2.4);
 
                 const wonText = this.add.text(centerX, centerY - 72, 'COMPLIANCE ACHIEVED',
                     display(30)).setOrigin(0.5).setDepth(21);
@@ -2963,35 +2978,35 @@
                 });
                 this.cameras.main.flash(260, 255, 255, 255);
 
-                this.add.rectangle(centerX, centerY - 38, 320, 1, T.hairline, 0.12).setDepth(21);
+                this.add.rectangle(centerX, centerY - 38, 360, 1, T.hairline, 0.12).setDepth(21);
 
-                this.add.text(centerX, centerY - 10, 'Score: ' + this.score.toLocaleString('en-US'), {
-                    fontSize: '13px',
+                this.add.text(centerX, centerY - 12, 'Score: ' + this.score.toLocaleString('en-US'), {
+                    fontSize: '17px',
                     fontFamily: 'Geist Mono',
                     color: '#8A8F98'
                 }).setOrigin(0.5).setDepth(21);
 
                 // Show penalty for remaining updates
                 if (this.activeUpdates > 0) {
-                    this.add.text(centerX, centerY + 14, 'Pending updates: −' + updatePenalty.toLocaleString('en-US'), {
-                        fontSize: '13px',
+                    this.add.text(centerX, centerY + 16, 'Pending updates: −' + updatePenalty.toLocaleString('en-US'), {
+                        fontSize: '17px',
                         fontFamily: 'Geist Mono',
                         color: '#8A8F98'
                     }).setOrigin(0.5).setDepth(21);
                 }
 
-                track(this.add.text(centerX, centerY + 94, 'FINAL SCORE',
-                    label(9)).setOrigin(0.5).setDepth(21), 2.4);
-                this.add.rectangle(centerX, centerY + 82, 320, 1, T.hairline, 0.12).setDepth(21);
+                track(this.add.text(centerX, centerY + 100, 'FINAL SCORE',
+                    label(12)).setOrigin(0.5).setDepth(21), 2.4);
+                this.add.rectangle(centerX, centerY + 86, 360, 1, T.hairline, 0.12).setDepth(21);
 
-                this.add.text(centerX, centerY + 56, finalScore.toLocaleString('en-US'),
+                this.add.text(centerX, centerY + 58, finalScore.toLocaleString('en-US'),
                     figure(40)).setOrigin(0.5).setDepth(21);
 
-                const restartLabel = track(this.add.text(centerX, centerY + 148,
+                const restartLabel = track(this.add.text(centerX, centerY + 156,
                     (isTouchDevice() ? 'TAP TO PLAY AGAIN' : 'PRESS SPACE TO PLAY AGAIN') + '   \u2192',
-                    label(10, '#141414')).setOrigin(0.5).setDepth(22), 2);
-                const restartBtn = this.add.rectangle(centerX, centerY + 148,
-                    restartLabel.width + 40, 40, T.accent).setDepth(21).setInteractive({ useHandCursor: true });
+                    label(13, '#141414')).setOrigin(0.5).setDepth(22), 2);
+                const restartBtn = this.add.rectangle(centerX, centerY + 156,
+                    restartLabel.width + 48, 46, T.accent).setDepth(21).setInteractive({ useHandCursor: true });
                 this.time.delayedCall(600, () => blinkButton(this, restartBtn));
 
                 let restarted = false;
@@ -3018,7 +3033,10 @@
                 soundManager.playGameOver();
 
                 const centerX = BOARD_W / 2;
-                const centerY = BOARD_H / 2;
+                const boardMid = BOARD_H / 2;
+                // Same balance as the win panel: it runs -148 to +186, so it
+                // sits on the board's centre line once lifted by 19.
+                const centerY = boardMid - 24;
 
                 // Currency mapping for each market
                 const currencies = {
@@ -3039,13 +3057,13 @@
                 this.cameras.main.shake(500, 0.02);
 
                 // Overlay with dark theme
-                const overlay = this.add.rectangle(centerX, centerY,
+                const overlay = this.add.rectangle(centerX, boardMid,
                     MAZE_WIDTH * TILE_SIZE, MAZE_HEIGHT * TILE_SIZE, T.ink, 0.96).setDepth(20);
                 addStripes(this, 20.1, 0.9);
 
                 // Non-compliance alert badge - flashing
                 const alertBadge = track(this.add.text(centerX, centerY - 142, 'NON-COMPLIANCE',
-                    label(10, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
+                    label(13, T.labelStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
                 // Main audit failed text - starts scaled to 0
                 const auditFailedText = this.add.text(centerX, centerY - 96, 'AUDIT FAILED',
@@ -3092,22 +3110,22 @@
                 // Other elements fade in
                 const withdrawnText = this.add.text(centerX, centerY - 50,
                     'Product withdrawn from the ' + (enemy ? countryName : 'US') + ' market at ' + compliancePct + '% compliance', {
-                    fontSize: '13px',
+                    fontSize: '17px',
                     fontFamily: 'Geist Mono',
                     color: '#8A8F98',
                     align: 'center',
                     wordWrap: { width: 540 }
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
-                const dividerLine = this.add.rectangle(centerX, centerY - 14, 320, 1, 0xFFFFFF, 1)
+                const dividerLine = this.add.rectangle(centerX, centerY - 14, 360, 1, 0xFFFFFF, 1)
                     .setAlpha(0).setDepth(21);
 
                 const penaltyAmount = { value: 0 };
                 // Penalty scales based on uncollected items: 0 if all collected, 2M if none collected
                 const uncollectedRatio = this.totalDots > 0 ? (this.totalDots - this.collectedDots) / this.totalDots : 1;
                 const targetPenalty = Math.round(2000000 * uncollectedRatio);
-                const penaltyLabel = track(this.add.text(centerX, centerY + 16, 'PENALTY',
-                    label(9)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
+                const penaltyLabel = track(this.add.text(centerX, centerY + 18, 'PENALTY',
+                    label(12)).setOrigin(0.5).setAlpha(0).setDepth(21), 2.4);
 
                 const penaltyText = this.add.text(centerX, centerY + 52, currency.symbol + '0', {
                     fontSize: '38px',
@@ -3117,9 +3135,9 @@
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
                 // Spell out the currency so the symbol is unambiguous
-                const currencyNote = track(this.add.text(centerX, centerY + 88,
+                const currencyNote = track(this.add.text(centerX, centerY + 92,
                     currency.name.toUpperCase() + ' (' + currency.code + ')',
-                    label(9, T.dimStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2);
+                    label(12, T.dimStr)).setOrigin(0.5).setAlpha(0).setDepth(21), 2);
 
                 // Counting animation for penalty
                 this.tweens.add({
@@ -3134,17 +3152,17 @@
                     }
                 });
 
-                const scoreText = this.add.text(centerX, centerY + 120, 'Score: ' + this.score.toLocaleString('en-US'), {
-                    fontSize: '13px',
+                const scoreText = this.add.text(centerX, centerY + 126, 'Score: ' + this.score.toLocaleString('en-US'), {
+                    fontSize: '17px',
                     fontFamily: 'Geist Mono',
                     color: '#8A8F98'
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
 
-                const restartLabel = track(this.add.text(centerX, centerY + 166,
+                const restartLabel = track(this.add.text(centerX, centerY + 174,
                     (isTouchDevice() ? 'TAP TO TRY AGAIN' : 'PRESS SPACE TO TRY AGAIN') + '   \u2192',
-                    label(10, '#141414')).setOrigin(0.5).setAlpha(0).setDepth(22), 2);
-                const restartText = this.add.rectangle(centerX, centerY + 166,
-                    restartLabel.width + 40, 40, T.accent)
+                    label(13, '#141414')).setOrigin(0.5).setAlpha(0).setDepth(22), 2);
+                const restartText = this.add.rectangle(centerX, centerY + 174,
+                    restartLabel.width + 48, 46, T.accent)
                     .setAlpha(0).setDepth(21).setInteractive({ useHandCursor: true });
 
                 // Staggered fade-in for other elements
