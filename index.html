@@ -150,6 +150,8 @@
         body.window-mode .board-wrap { padding: 8px 0 0; }
         body.window-mode main { padding: 0 !important; }
         body.window-mode .shell { padding-left: 8px; padding-right: 8px; }
+        body.embed-mode .board { border-color: rgba(255,255,255,0.14); }
+        body.embed-mode { background: #0F141D; }
         .label {
             font-family: 'Geist Mono', ui-monospace, monospace;
             font-weight: 500;
@@ -830,10 +832,32 @@
         // full screen where that is supported (every phone), and otherwise a
         // popup window opened at the board's own proportions.
         const BOARD_ASPECT = 19 / 22;
-        const isWindowMode = new URLSearchParams(location.search).get('mode') === 'window';
-        if (isWindowMode) document.body.classList.add('window-mode');
+        const params = new URLSearchParams(location.search);
+        const isWindowMode = params.get('mode') === 'window';
+        // Embedded: the game sits in a panel on certean.com. Same chrome-less
+        // layout, no window button (a popup from inside a frame is no use),
+        // and the result is handed to the host page when a round ends.
+        const isEmbedded = params.get('embed') === '1' || window.parent !== window;
+        if (isWindowMode || isEmbedded) document.body.classList.add('window-mode');
+        if (isEmbedded) document.body.classList.add('embed-mode');
 
-        const windowBtn = document.getElementById('window-btn');
+        /** Hand a finished round to the page that embedded us. */
+        window.reportRound = function (outcome, score, extra) {
+            if (window.parent === window) return;
+            try {
+                window.parent.postMessage(Object.assign({
+                    source: 'compliance-man',
+                    outcome: outcome,
+                    score: score
+                }, extra || {}), '*');
+            } catch (e) { /* host on another origin and locked down */ }
+        };
+
+        const windowBtn = isEmbedded ? null : document.getElementById('window-btn');
+        if (isEmbedded) {
+            const hide = document.getElementById('window-btn');
+            if (hide) hide.remove();
+        }
         const canFullscreen = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
         const coarse = window.matchMedia('(pointer: coarse)').matches;
 
@@ -3010,6 +3034,14 @@
                 this.time.delayedCall(600, () => blinkButton(this, restartBtn));
 
                 let restarted = false;
+                if (window.reportRound) {
+                    window.reportRound('win', finalScore, {
+                        compliance: 100,
+                        markings: this.counts.markings,
+                        collected: this.collectedDots
+                    });
+                }
+
                 const restart = () => {
                     if (restarted) return;
                     restarted = true;
@@ -3157,6 +3189,14 @@
                     fontFamily: 'Geist Mono',
                     color: '#8A8F98'
                 }).setOrigin(0.5).setAlpha(0).setDepth(21);
+
+                if (window.reportRound) {
+                    window.reportRound('lose', this.score, {
+                        compliance: compliancePct,
+                        markings: this.counts.markings,
+                        collected: this.collectedDots
+                    });
+                }
 
                 const restartLabel = track(this.add.text(centerX, centerY + 174,
                     (isTouchDevice() ? 'TAP TO TRY AGAIN' : 'PRESS SPACE TO TRY AGAIN') + '   \u2192',
