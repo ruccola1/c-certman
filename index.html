@@ -909,6 +909,21 @@
             if (req) req.call(el).catch(() => {});
         }
 
+        // Reopen whatever URL this page is actually served from. The game may
+        // sit at "/", at a path with no trailing slash, as an iframe src or on
+        // disk, and a hardcoded "index.html" resolves against the wrong
+        // directory on a host that has no such route — which 404s.
+        function gameWindowUrl() {
+            try {
+                const url = new URL(window.location.href);
+                url.searchParams.set('mode', 'window');
+                url.hash = '';
+                return url.toString();
+            } catch (e) {
+                return 'index.html?mode=window';
+            }
+        }
+
         function openGameWindow() {
             // Size the popup to the board plus the score strip, capped to the screen.
             const chrome = 150;                                  // score strip + window frame
@@ -920,7 +935,7 @@
             const left = Math.round(((screen.availWidth || 1200) - w) / 2);
             const top = Math.round(((screen.availHeight || 900) - h) / 2);
             const popup = window.open(
-                'index.html?mode=window',
+                gameWindowUrl(),
                 'compliance-man',
                 `width=${w},height=${h},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
             );
