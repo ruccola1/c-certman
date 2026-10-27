@@ -284,7 +284,7 @@
                     <span id="legislations-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
                 </div>
                 <div class="flex items-center gap-2 shrink-0 whitespace-nowrap">
-                    <span class="w-3.5 h-2.5 rounded-[2px] bg-[#FFC53D]"></span>
+                    <span class="w-3.5 h-2.5 bg-white border-b-2 border-[#003399]"></span>
                     <span class="font-mono text-[10px] sm:text-[11px] tracking-[0.06em] text-white/75">Markings</span>
                     <span id="markings-count" class="font-mono text-[10px] text-white/45 tabular-nums">0</span>
                 </div>
@@ -1211,6 +1211,88 @@
         // The conformity marks of the four countries whose auditors chase you.
         // Each one appears for a few seconds, then it is gone again — and
         // taking one clears that country off your back for a moment.
+        // The conformity marks drawn as artwork rather than typed out: the CE
+        // arcs, UL in its circle, the stamped letterforms of FCC and the Korean
+        // marks, and the round badges Brazil issues. Each draws white on
+        // transparent inside a box `width` wide and `h` tall.
+        const MEASURE = document.createElement('canvas').getContext('2d');
+        const bold = size => '700 ' + size + 'px Geist, ui-sans-serif, system-ui, sans-serif';
+        const textWidth = (txt, size) => {
+            MEASURE.font = bold(size);
+            return MEASURE.measureText(txt).width;
+        };
+        // Letters stamped the way a mark is stamped: tight, heavy, no plate
+        const stamp = (txt, h) => ({
+            width: Math.ceil(textWidth(txt, h * 0.78)) + 10,
+            draw: (ctx, W, H) => {
+                ctx.font = bold(H * 0.78);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(txt, W / 2, H / 2 + H * 0.02);
+            }
+        });
+        // A badge: outline with the mark's name set small inside it
+        const badge = (txt, h, round) => ({
+            width: Math.round(h * (round ? 1 : 1.55)),
+            draw: (ctx, W, H) => {
+                ctx.lineWidth = Math.max(2, H * 0.08);
+                const inset = ctx.lineWidth / 2 + 1;
+                if (round) {
+                    ctx.beginPath();
+                    ctx.arc(W / 2, H / 2, H / 2 - inset, 0, Math.PI * 2);
+                    ctx.stroke();
+                } else {
+                    ctx.strokeRect(inset, inset, W - inset * 2, H - inset * 2);
+                }
+                const room = (round ? H * 0.78 : W - H * 0.3);
+                let size = H * 0.34;
+                while (textWidth(txt, size) > room && size > 5) size -= 0.5;
+                ctx.font = bold(size);
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(txt, W / 2, H / 2);
+            }
+        });
+        const MARK_ART = {
+            // Two open arcs, the way the CE mark is actually constructed
+            CE: {
+                width: 104,
+                draw: (ctx, W, H) => {
+                    const r = H * 0.44;
+                    const lw = H * 0.17;
+                    const cy = H / 2;
+                    const cxC = r + lw / 2 + 2;
+                    const cxE = cxC + r * 1.7;
+                    ctx.lineWidth = lw;
+                    ctx.lineCap = 'butt';
+                    ctx.beginPath();
+                    ctx.arc(cxC, cy, r, Math.PI / 3, Math.PI * 5 / 3);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.arc(cxE, cy, r, Math.PI / 3, Math.PI * 5 / 3);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(cxE - r * 0.05, cy);
+                    ctx.lineTo(cxE + r * 0.78, cy);
+                    ctx.stroke();
+                }
+            },
+            // UL sits in its ring
+            UL: {
+                width: 56,
+                draw: (ctx, W, H) => {
+                    ctx.lineWidth = Math.max(2.5, H * 0.09);
+                    ctx.beginPath();
+                    ctx.arc(W / 2, H / 2, H / 2 - ctx.lineWidth / 2 - 1, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.font = bold(H * 0.46);
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('UL', W / 2, H / 2 + 1);
+                }
+            }
+        };
+
         const COUNTRY_MARKINGS = [
             { code: 'CE',      country: 'EU',      bar: '#003399' },
             { code: 'FCC',     country: 'US',      bar: '#BF0A30' },
@@ -1260,30 +1342,48 @@
             }
 
             createPlayerTextures() {
-                // Chomp frames carved out of the real logo artwork, so the
-                // player keeps the facet lines of the Certean mark
-                const makeFrame = (key, t) => {
-                    const size = 64;
-                    const tex = this.textures.createCanvas(key, size, size);
+                // The player is the Certean mark: a hexagon with the cube facets
+                // inside it. Drawn rather than traced from the logo artwork so a
+                // real mouth can be cut out of it — carving the artwork left a
+                // notch you could not see at 26px.
+                const makeFrame = (key, mouthDeg) => {
+                    const S = 64, c = S / 2, R = 29;
+                    const tex = this.textures.createCanvas(key, S, S);
                     const ctx = tex.getContext();
-                    if (this.textures.exists('player')) {
-                        ctx.drawImage(this.textures.get('player').getSourceImage(), 0, 0, size, size);
-                    } else {
-                        // Fallback: plain gold hexagon
-                        ctx.fillStyle = '#3D63FF';
-                        ctx.beginPath();
-                        ctx.moveTo(32, 4); ctx.lineTo(60, 18); ctx.lineTo(60, 46);
-                        ctx.lineTo(32, 60); ctx.lineTo(4, 46); ctx.lineTo(4, 18);
-                        ctx.closePath();
-                        ctx.fill();
+                    ctx.clearRect(0, 0, S, S);
+
+                    // Outer hexagon, flat edge facing the way it travels
+                    ctx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const a = (Math.PI / 3) * i - Math.PI / 2;
+                        const x = c + Math.cos(a) * R;
+                        const y = c + Math.sin(a) * R;
+                        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
                     }
-                    if (t > 0) {
-                        // Carve the mouth wedge out of the artwork
+                    ctx.closePath();
+                    ctx.fillStyle = '#3D63FF';
+                    ctx.fill();
+
+                    // The cube's three facet seams, straight out of the mark
+                    ctx.strokeStyle = 'rgba(10, 22, 70, 0.5)';
+                    ctx.lineWidth = 3;
+                    [-90, 30, 150].forEach(deg => {
+                        const a = deg * Math.PI / 180;
+                        ctx.beginPath();
+                        ctx.moveTo(c, c);
+                        ctx.lineTo(c + Math.cos(a) * R, c + Math.sin(a) * R);
+                        ctx.stroke();
+                    });
+
+                    // Cut the mouth as a wedge from the centre, so it opens and
+                    // closes the way a chomp should
+                    if (mouthDeg > 0) {
+                        const half = mouthDeg * Math.PI / 180;
                         ctx.globalCompositeOperation = 'destination-out';
                         ctx.beginPath();
-                        ctx.moveTo(30, 32);
-                        ctx.lineTo(70, 32 - t);
-                        ctx.lineTo(70, 32 + t);
+                        ctx.moveTo(c, c);
+                        ctx.lineTo(c + Math.cos(-half) * S, c + Math.sin(-half) * S);
+                        ctx.lineTo(c + Math.cos(half) * S, c + Math.sin(half) * S);
                         ctx.closePath();
                         ctx.fill();
                         ctx.globalCompositeOperation = 'source-over';
@@ -1291,8 +1391,8 @@
                     tex.refresh();
                 };
                 makeFrame('player_0', 0);
-                makeFrame('player_1', 12);
-                makeFrame('player_2', 22);
+                makeFrame('player_1', 16);
+                makeFrame('player_2', 34);
             }
 
             createPlaceholderAssets() {
@@ -1324,41 +1424,31 @@
                 gLeg.strokeRect(4, 4, 8, 8);
                 gLeg.generateTexture('dot_legislation', 16, 16);
 
-                // Markings are the one collectible that breaks the steel palette:
-                // each is its own icon — the mark's own letters stamped on a gold
-                // plate, with the issuing country's colour along the bottom.
+                // Markings are the one collectible that is a picture rather than
+                // a shape: each is the issuing body's own mark, drawn white with
+                // the country's colour ruled under it.
                 COUNTRY_MARKINGS.forEach(mark => {
                     const key = 'mark_' + mark.code;
                     if (this.textures.exists(key)) return;
-                    // The plate is cut to the length of the code, so a long mark
-                    // like INMETRO stays as legible as a short one like CE.
-                    const H = 40;
-                    const face = size => '700 ' + size + 'px "Geist Mono", ui-monospace, monospace';
-                    const measure = this.textures.createCanvas('__measure', 8, 8).getContext();
-                    measure.font = face(22);
-                    const W = Math.ceil(measure.measureText(mark.code).width) + 22;
-                    this.textures.remove('__measure');
+
+                    const GLYPH = 52;            // room for the mark itself
+                    const BAR = 7;               // the country rule beneath it
+                    const GAP = 5;
+                    const art = MARK_ART[mark.code]
+                        || (mark.code.length > 3 ? badge(mark.code, GLYPH, mark.code.length < 5) : stamp(mark.code, GLYPH));
+                    const W = Math.max(24, Math.round(art.width));
+                    const H = GLYPH + GAP + BAR;
 
                     const tex = this.textures.createCanvas(key, W, H);
                     const ctx = tex.getContext();
                     ctx.clearRect(0, 0, W, H);
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.strokeStyle = '#FFFFFF';
+                    ctx.lineJoin = 'round';
+                    art.draw(ctx, W, GLYPH);
 
-                    ctx.fillStyle = T.accentStr;
-                    if (ctx.roundRect) {
-                        ctx.beginPath();
-                        ctx.roundRect(1, 1, W - 2, H - 2, 7);
-                        ctx.fill();
-                    } else {
-                        ctx.fillRect(1, 1, W - 2, H - 2);
-                    }
                     ctx.fillStyle = mark.bar;
-                    ctx.fillRect(4, H - 8, W - 8, 5);
-
-                    ctx.fillStyle = T.inkStr;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.font = face(22);
-                    ctx.fillText(mark.code, W / 2, H / 2 - 3);
+                    ctx.fillRect(0, GLYPH + GAP, W, BAR);
                     tex.refresh();
                 });
 
@@ -1792,6 +1882,7 @@
 
             create() {
                 fitCamera(this);
+                if (window.claimKeyboard) window.claimKeyboard();
                 this.physics.world.setBounds(0, 0, BOARD_W, BOARD_H);
 
                 // Start the background music. Anything left over from a win or
@@ -2030,7 +2121,7 @@
                     'mark_' + mark.code
                 );
                 const plate = this.textures.get('mark_' + mark.code).getSourceImage();
-                const iconH = 18;
+                const iconH = 24;
                 dot.setDisplaySize(Math.min(52, Math.round(iconH * plate.width / plate.height)), iconH);
                 dot.setDepth(7);
                 dot.category = 'markings';
@@ -3330,8 +3421,28 @@
         };
 
         // Start the game after fonts are loaded
+        // Arrow keys only reach a page that holds keyboard focus. Embedded in
+        // an iframe, a click on the host page — or a panel the host opens when
+        // a round ends — takes that focus away, and the next game then starts
+        // with dead controls. Claim it back on every pointer down and whenever
+        // a scene starts.
+        window.claimKeyboard = function () {
+            try {
+                if (window.parent !== window) window.focus();
+                const canvas = window.game && window.game.canvas;
+                if (canvas && document.activeElement !== canvas) {
+                    canvas.focus({ preventScroll: true });
+                }
+            } catch (e) { /* host on another origin and locked down */ }
+        };
+        document.addEventListener('pointerdown', window.claimKeyboard, true);
+
         document.fonts.ready.then(() => {
             window.game = new Phaser.Game(config);
+            // A canvas is only focusable once it can take the tab order
+            window.game.canvas.setAttribute('tabindex', '0');
+            window.game.canvas.style.outline = 'none';
+            window.claimKeyboard();
         });
     </script>
 </body>
