@@ -1037,7 +1037,25 @@
         const STRIPE_PITCH = 7;
         // Crisp on retina: render the board at device resolution and zoom the
         // camera back, so world coordinates stay in maze pixels
-        const DPR = Math.min(Math.round(window.devicePixelRatio || 1), 2);
+        // How many device pixels to render per maze pixel. Blindly doubling
+        // for a retina screen means a game sitting in a 380px panel renders at
+        // 1216px wide and is thrown away in the downscale — four times the fill
+        // for no visible gain. Measure the panel instead, and drop to 1:1 when
+        // there is no WebGL, where every extra pixel is real work on the CPU.
+        let DPR = 1;
+        function pickDpr() {
+            let webgl = false;
+            try {
+                const probe = document.createElement('canvas');
+                webgl = !!(window.WebGLRenderingContext
+                    && (probe.getContext('webgl') || probe.getContext('experimental-webgl')));
+            } catch (e) { webgl = false; }
+            if (!webgl) return 1;
+            const host = document.getElementById('game-container');
+            const cssWidth = (host && host.getBoundingClientRect().width) || BOARD_W;
+            const devicePixels = cssWidth * (window.devicePixelRatio || 1);
+            return Math.max(1, Math.min(2, Math.round(devicePixels / BOARD_W)));
+        }
 
         // Display (headline) and mono (label) type, set the way the site sets them
         const display = (size) => ({ fontSize: size + 'px', fontFamily: 'Nabla' });
@@ -2499,7 +2517,7 @@
                 this.handleInput();
 
                 // Move player with target-based movement
-                this.movePlayer();
+                this.movePlayer(delta);
 
                 // Animate player chomping and rotation
                 this.animatePlayer(delta);
@@ -2552,7 +2570,7 @@
                 this.inputDirection = key || this.touchHeld || this.queuedDirection;
             }
 
-            movePlayer() {
+            movePlayer(delta) {
                 // Get current tile position (clamped while crossing the tunnel edges)
                 const tileX = Phaser.Math.Clamp(Math.floor(this.player.x / TILE_SIZE), 0, MAZE_WIDTH - 1);
                 const tileY = Phaser.Math.Clamp(Math.floor(this.player.y / TILE_SIZE), 0, MAZE_HEIGHT - 1);
@@ -2563,8 +2581,14 @@
                 const distX = Math.abs(this.player.x - tileCenterX);
                 const distY = Math.abs(this.player.y - tileCenterY);
 
-                // More forgiving center detection
-                const threshold = 6;
+                // How wide the turning window around a tile centre has to be.
+                // At 60fps the player steps 2.5px a frame and a fixed 6px window
+                // is plenty, but on a slow host (or an embed sharing the thread)
+                // a frame can step 10px or more — straight over a fixed window,
+                // so the turn is dropped and the arrow key looks dead. Scale the
+                // window with the distance actually travelled this frame.
+                const step = PLAYER_SPEED * Math.min(delta || 16.7, 120) / 1000;
+                const threshold = Math.max(6, step * 0.9 + 3);
                 const nearCenterX = distX < threshold;
                 const nearCenterY = distY < threshold;
 
@@ -3438,6 +3462,9 @@
         document.addEventListener('pointerdown', window.claimKeyboard, true);
 
         document.fonts.ready.then(() => {
+            DPR = pickDpr();
+            config.scale.width = BOARD_W * DPR;
+            config.scale.height = BOARD_H * DPR;
             window.game = new Phaser.Game(config);
             // A canvas is only focusable once it can take the tab order
             window.game.canvas.setAttribute('tabindex', '0');
